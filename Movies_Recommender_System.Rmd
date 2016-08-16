@@ -1,0 +1,562 @@
+---
+title: "Movies_Recommender_System: Capstone Project"
+author: "Manu Kushwaha"
+date: "August 11, 2016"
+output: 
+  html_document:
+    keep_md: true
+---
+***
+### OBJECTIVE/SYNOPSIS
+
+The objective of this project is create a movies recommender system which utilizes the collaborative filtering methodology to recommend atlest top 3-5 movies to a target user. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
+
+The dataset that was chosen is from the "MovieLens 1M Dataset" section and the compressed file name was: "ml-1m.zip".
+
+The structure of the Movie data is such that it does not provide any Movie content information, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
+
+Based on this limitation, the approach is then to utlize the user based collaborative filtering method, which finds similarity between ratings of multiple users who are the closest to the target user, and then provide movies' recommendations to this user which they have not yet rated or seen.
+
+***
+### ABOUT THE FILES IN THE "MOVIELENS 1M DATASET""
+
+There are 3 data files included in the compressed zip file and these files contain 1,000,209 anonymous ratings of approximately 3,900 movies 
+made by 6,040 MovieLens users who joined MovieLens in 2000.
+
+The description and content of these 3 files is given below:
+
+***
+#### 1. RATINGS FILE DESCRIPTION
+
+All ratings are contained in the file "ratings.dat" and are in the
+following format:
+
+UserID::MovieID::Rating::Timestamp
+
+- UserIDs range between 1 and 6040 
+- MovieIDs range between 1 and 3952
+- Ratings are made on a 5-star scale (whole-star ratings only)
+- Timestamp is represented in seconds since the epoch as returned by time(2)
+- Each user has at least 20 ratings
+
+***
+#### 2. USERS FILE DESCRIPTION
+
+User information is in the file "users.dat" and is in the following
+format:
+
+UserID::Gender::Age::Occupation::Zip-code
+
+All demographic information is provided voluntarily by the users and is
+not checked for accuracy.  Only users who have provided some demographic
+information are included in this data set.
+
+- Gender is denoted by a "M" for male and "F" for female
+- Age is chosen from the following ranges:
+
+	*  1:  "Under 18"
+	* 18:  "18-24"
+	* 25:  "25-34"
+	* 35:  "35-44"
+	* 45:  "45-49"
+	* 50:  "50-55"
+	* 56:  "56+"
+
+- Occupation is chosen from the following choices:
+
+	*  0:  "other" or not specified
+	*  1:  "academic/educator"
+	*  2:  "artist"
+	*  3:  "clerical/admin"
+	*  4:  "college/grad student"
+	*  5:  "customer service"
+	*  6:  "doctor/health care"
+	*  7:  "executive/managerial"
+	*  8:  "farmer"
+	*  9:  "homemaker"
+	* 10:  "K-12 student"
+	* 11:  "lawyer"
+	* 12:  "programmer"
+	* 13:  "retired"
+	* 14:  "sales/marketing"
+	* 15:  "scientist"
+	* 16:  "self-employed"
+	* 17:  "technician/engineer"
+	* 18:  "tradesman/craftsman"
+	* 19:  "unemployed"
+	* 20:  "writer"
+
+***
+#### 3. MOVIES FILE DESCRIPTION
+
+Movie information is in the file "movies.dat" and is in the following
+format:
+
+MovieID::Title::Genres
+
+- Titles are identical to titles provided by the IMDB (including
+year of release)
+- Genres are pipe-separated and are selected from the following genres:
+
+	* Action
+	* Adventure
+	* Animation
+	* Children's
+	* Comedy
+	* Crime
+	* Documentary
+	* Drama
+	* Fantasy
+	* Film-Noir
+	* Horror
+	* Musical
+	* Mystery
+	* Romance
+	* Sci-Fi
+	* Thriller
+	* War
+	* Western
+
+***
+### INITAL OBSERVATIONS ABOUT THE DATA
+
+The format of the data is already provided above and there is, clearly, a need to wrangle it to bring it into a workable form. To confirm whether R sees the same format as above, all the 3 files are read into their respective dataframes. 
+
+```{r warning = FALSE}
+# Loading the required libraries
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
+suppressMessages(library(reshape2))
+suppressMessages(library(splitstackshape))
+suppressMessages(library(scales))
+```
+
+```{r utility_func}
+## Creating a utility function to perform basic checks on the dataframes
+check_df <- function(y, ...){
+  
+  if(... == 0){
+    df_records_count <- sapply(y, function(x) sum(length(x)))
+    print("Checking for the total number of records in the dataframe to ensure completeness:")
+    cat("\n")
+    print(df_records_count)
+    cat("\n\n")
+    
+    df_missing_data <- sapply(y, function(x) sum(length(which(is.na(x)))))
+    print("Checking for the total number of missing values (NA) in the dataframe if any:")
+    cat("\n")
+    print(df_missing_data)
+  }
+  
+  if(... == 1){
+    df_records_count <- sapply(y, function(x) sum(length(x)))
+    print("Checking for the total number of records in the dataframe to ensure completeness:")
+    cat("\n")
+    print(df_records_count)
+    cat("\n\n")
+  }
+  
+  if(... == 2){
+    df_missing_data <- sapply(y, function(x) sum(length(which(is.na(x)))))
+    print("Checking for the total number of missing values (NA) in the dataframe if any:")
+    cat("\n")
+    print(df_missing_data)
+  }
+
+}
+```
+
+***
+Reading in the data from the 3 files.
+
+```{r movies}
+# reading the movies.dat file
+mov_lines <- readLines("movies.dat")
+head(mov_lines)
+```
+
+##### Observations:
+
+  * There is no header information to explain the varibales in the dataset
+  * The variables here are seperated by "::"
+  * Movie release year is a part of the movie title
+  * Generes are seperated using a pipe operator ("|")
+
+***
+```{r users}
+# reading the users.dat file
+usrs_lines <- readLines("users.dat")
+head(usrs_lines)
+```
+
+##### Observations:
+
+  * There is again no header information to explain the varibales in the dataset
+  * The variables here are also seperated by "::"
+  * Age and Occupation appear as IDs rather than in their meaningful form 
+
+***
+```{r ratings}
+# reading the ratings.dat file
+ratings_lines <- readLines("ratings.dat")
+head(ratings_lines)
+```
+
+##### Observations:
+
+  * There is once again no header information to explain the varibales in the dataset
+  * The variables here are again seperated by "::"
+  * The timestamp needs to be converted into a meaningful date format
+
+***
+### DATA WRANGLING APPROACH
+
+Clearly, the data needs to be formatted properly to bring it into a workable form. The idea here is to combine the 3 datasets to create one complete movies dataframe which contains all the information provided in these seperate files.
+
+In order to do so, the following approach is undertaken:
+
+For the movies (mov_lines) dataset:
+
+  1. The "::" seperator needs to be removed
+  2. Header information needs to be input to give meaningful names to the variables (data columns)
+  3. The movie release year needs to be seperated from the movie title variable and a new ReleaseYear variable needs to be created
+  4. Similarly, the Generes need to be seperated and a new Genere variable needs to be created
+
+Hence, implementing the above 4 points...
+
+Addressing point 1 above:
+```{r movie_dataframe}
+# Transforming the mov_lines into a Matrix and then into a mov_df dataframe
+Matrix <- do.call(rbind, strsplit(mov_lines,"::", fixed=TRUE))
+mov_df <- as.data.frame(Matrix)
+```
+
+Addressing point 2 above:
+```{r movie_dataframe_mod1}
+# From the readme file included, assigning the relevant column/variable names
+names(mov_df) <- c("MovieID", "MovieTitle","Genere")
+
+# Checking the first few records of the mov_df dataframe
+head(mov_df)
+
+# Running the utility function to check the mov_df dataframe
+check_df(mov_df,0)
+
+# checking the structure of the mov_df
+str(mov_df)
+```
+
+Since all variables are factors, the MovieID will beed to be turned into numeric type and MovieTitle into Character such that string manipulations can be done.
+
+```{r movie_dataframe_mod2}
+# converting MovieTitle to character vector
+mov_df$MovieTitle <- as.character(mov_df$MovieTitle)
+
+# converting MovieID to numeric vector
+mov_df$MovieID <- as.numeric(mov_df$MovieID)
+```
+
+Addressing point 3 above:
+```{r movie_dataframe_mod3}
+# Extracting the release year portion from the MovieTitle variable 
+mov_year <- extract_numeric(substr(mov_df$MovieTitle, nchar(mov_df$MovieTitle)-5, nchar(mov_df$MovieTitle)))
+mov_title <- substr(mov_df$MovieTitle, 1, nchar(mov_df$MovieTitle)-7)
+
+# Reassigning the data back to the MovieTitle variable without the year
+mov_df$MovieTitle <- mov_title
+
+# Creating a Release year column in the mov_df
+mov_df$ReleaseYear <- mov_year
+
+# Checking the first few records of the new movive dataframe
+head(mov_df)
+```
+
+Addressing Point 4 above:
+```{r movie_dataframe_mod4}
+# split the Genere column to corresponding Generes which are separated by "|"
+mov_df <- cSplit(mov_df, "Genere", sep="|")
+
+# checking the first few observatins
+head(mov_df)
+#sapply(mov_df, class)
+#sapply(mov_df, function(y) sum(length(which(is.na(y)))))
+check_df(mov_df,0)
+```
+
+From the above 2 outputs, it can be seen that although Generes have been split into 6 different categories, they are not unique. Hence, to fix this:
+```{r movie_dataframe_mod5}
+mdata <- melt(mov_df, id=c("MovieID","MovieTitle","ReleaseYear"))
+
+# Using the utility function to check the mdata dataframe
+check_df(mdata,0)
+```
+
+The total number of observations is now 23298 which is: 3883 movies * 6 Generes. This means that there are movies in the dataframe that are repeated and which do not fit into a particular Genere type. Hence, it is safe to remove these records.
+
+```{r movie_dataframe_mod6}
+# removing records where value is NA which indicates that a movie does not have a genere specified
+mdata <- mdata[!is.na(mdata$value),]
+#sapply(mdata, function(y) sum(length(which(is.na(y)))))
+check_df(mdata, 0)
+```
+
+Another observation based on the above output indicates that there are now 6408 records where a movie may be repeated across other Generes. Now creating a binary classification for the Generes:
+```{r movie_dataframe_mod5}
+# Createing a 1's column in the mov_df dataframe where 1 indicates that the movie has been classified into certain Genere
+mdata$Type <- 1
+
+# Widening the mov_df dataframe to have Generes as variables
+mov_df <- dcast(mdata, MovieID + MovieTitle + ReleaseYear ~ value, value.var="Type")
+
+check_df(mov_df,0)
+
+# replacing all NA values with 0
+mov_df[is.na(mov_df)] <- 0
+
+# Again checking the first few records of the mov_df
+head(mov_df)
+
+# Checking the structure of the mov_df dataframe
+str(mov_df)
+#sapply(mov_df, class)
+
+# check to see if any punctuation characters are present in the dataframe
+sapply(mov_df, function(y) sum(length(grep("[^[:alnum:]]", y))))
+```
+
+As seen here, the Generes are now all numeric in nature rather than factors as originally obtained. They will need to be converted into factors once the full dataframe is created. Also, as expected, the movie title variable contains punctuation characters which is fine.
+
+***
+
+For the users (usrs_lines) dataset:
+
+  1. The "::" seperator needs to be removed
+  2. Header information needs to be input to give meaningful names to the variables (data columns)
+  3. Age and Occupation appear as IDs rather than in their meaningful form. Therefore, seperate Age and Occupation dataframes need to be created, containing both AgeID and AgeRange, and, OccupationID and Occupation, and then joined with the users dataframe
+
+Hence, implementing the above 3 points...
+
+Addressing point 1 above:
+```{r usrs_dataframe}
+# Transforming the usrs_lines into a Matrix and then into a usrs_df dataframe
+Matrix <- do.call(rbind, strsplit(usrs_lines,"::", fixed=TRUE))
+usrs_df <- data.frame(Matrix, stringsAsFactors = FALSE)
+```
+
+Addressing point 2 above:
+```{r usrs_dataframe_mod1}
+# From the readme file included, assigning the relevant column/variable names
+names(usrs_df) <- c("UserID", "Gender", "Age", "OccupationID", "ZipCode")
+
+# checking the first few records of the usrs_df
+head(usrs_df)
+
+# checking the structure of the usrs_df
+str(usrs_df)
+```
+
+```{r usrs_dataframe_mod2}
+# check for special chars in the entire usr_df dataframe, the result will indicate which columns have issues
+sapply(usrs_df, function(y) sum(length(grep("[^[:alnum:]]", y))))
+
+# since Zipcode column is showing 66 non-alphanumeric values, we need to see what these are
+head(grep("[^[:alnum:]]", usrs_df$ZipCode, value = TRUE))
+
+# since all US Zipcodes are 5 digits, selecting only the LHS values before the "-" (which are 5 digits)
+# and replacing them back in the same place
+usrs_df$ZipCode <- sub("(\\d{5}).*", "\\1", usrs_df$ZipCode)
+```
+
+```{r usrs_dataframe_mod3}
+# changing all columns but Gender to numeric
+usrs_df[, colnames(usrs_df) != "Gender"] <- lapply(usrs_df[, colnames(usrs_df) != "Gender"], as.numeric)
+
+# checking the structure of the usrs_df
+str(usrs_df)
+
+# checking to see if there is any variation in how the Gender is entered
+unique(usrs_df$Gender)
+```
+
+Addressing point 3 above:
+
+  * For this one, 2 new dat files (one containing the age information and the other with occupation data) were manually created. Their format is given below:
+  
+```{r age_dataframe}
+# creating the ages ref dataframe
+age_df <- read.csv("ages.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("numeric","character"))
+
+# assigning correct header names from the read_me file
+names(age_df) <- c("Age", "AgeRange")
+
+# checking the first few records of the age_df
+head(age_df)
+
+# checking the structure of the age_df
+str(age_df)
+```
+
+```{r occupation_dataframe}
+# creating the occupation ref dataframe
+occup_df <- read.csv("occupation.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("numeric","character"))
+
+# assigning correct header names from the read_me file
+names(occup_df) <- c("OccupationID", "Occupation")
+
+# checking the first few records of the occup_df
+head(occup_df)
+
+# checking the structure of the occup_df
+str(occup_df)
+```
+
+Now joining the age_df and the occup_df dataframes with the usrs_df dataframe:
+
+```{r usrs_dataframe_mod4}
+# joining the age_df to the usrs_df by Age
+usrs_df <- left_join(usrs_df, age_df, by = "Age")
+
+# joining the occup_df to the usrs_df by OccupationID
+usrs_df <- left_join(usrs_df, occup_df, by = "OccupationID")
+
+# checking the structure of the usrs_df
+str(usrs_df)
+
+# reordering columns
+usrs_df <- usrs_df[, c("UserID", "Age", "AgeRange", "Gender", "OccupationID", "Occupation", "ZipCode")]
+
+# checking the first few records of the usrs_df
+head(usrs_df)
+```
+
+The usrs_df is now complete with all the correct variables in place.
+
+***
+
+For the ratings (ratings_lines) dataset:
+
+  1. The "::" seperator needs to be removed
+  2. Header information needs to be input to give meaningful names to the variables (data columns)
+  3. The timestamp needs to be converted into a meaningful date and time format
+
+Hence, implementing the above 3 points...
+
+Addressing point 1 above:
+```{r ratings_dataframe}
+# reading the ratings.dat file
+Matrix <- do.call(rbind, strsplit(ratings_lines,"::", fixed=TRUE))
+ratings_df <- data.frame(Matrix, stringsAsFactors = FALSE)
+```
+
+Addressing point 2 above:
+```{r ratings_dataframe_mod1}
+# assigning correct header names from the read_me file
+names(ratings_df) <- c("UserID", "MovieID", "Rating", "TimeStamp")
+
+# checking the structure of the ratings_df dataframe
+str(ratings_df)
+
+check_df(ratings_df, 0)
+```
+
+Addressing point 3 above:
+```{r ratings_dataframe_mod2}
+# Changing all columns to numeric data type so that date and time operations can be performed on the timestamp
+ratings_df[, colnames(ratings_df)] <- lapply(ratings_df[, colnames(ratings_df)], as.numeric)
+
+# Now epoch or UNIX time is given in the TimeStamp - so extracting the date and time from it
+ratings_df$Date <- strftime(as.POSIXct(ratings_df$TimeStamp, origin = "1970-01-01", tz =""),"%Y-%m-%d")
+ratings_df$Time <- strftime(as.POSIXct(ratings_df$TimeStamp, origin = "1970-01-01", tz =""),"%H:%M:%S")
+
+# checking the first few records of the ratings_df
+head(ratings_df)
+
+# checking the structure of the ratings_ds
+str(ratings_df)
+```
+
+***
+
+To create the full movies dataframe that contains all the users, their ratings and movies information:
+
+  1. The usrs_df and mov_df dataframes will be joined with the ratings_df
+
+
+```{r full_movie_dataframe}
+# joining the usrs_df with the ratings_df by UserID column
+full_mov_df <- left_join(ratings_df, usrs_df, by = "UserID")
+
+# joining the mov_df with the full_mov_df created in the above step by MovieID column
+full_mov_df <- left_join(full_mov_df, mov_df, by = "MovieID")
+
+# checking the first few records of the full_mov_df
+head(full_mov_df)
+
+# using the utility function to check for missing values and total data
+check_df(full_mov_df, 0)
+
+# finally, checking the structure of the full_mov_df
+str(full_mov_df)
+```
+
+The utility function shows that there are 8825 records in the full_mov_df dataframe that contain NAs, starting from MovieTitle variable onwards. 
+
+### Here is where I don't understand why? Need Help!
+
+Question is that if there are movie titles with NAs for that user, then how can there be a rating value? Have I made a mistake in joining?
+
+```{r full_mov_df_mod}
+# Checking for the number of unique movie titles
+#unique(full_mov_df$MovieTitle)
+
+# changing all NAs to -1
+#full_mov_df[is.na(full_mov_df)] <- -1
+
+# running the utility function again to do the check for NAs
+#check_df(full_mov_df, 2)
+```
+
+Finally, from the sturcture output of the complete full_mov_df dataframe, it is apparent that many of the applicable variables will need to be converted to factors. Hence, this is taken care of below:
+
+```{r full_mov_df_mod1}
+full_mov_df$Rating <- as.factor(full_mov_df$Rating)
+full_mov_df$AgeRange <- as.factor(full_mov_df$AgeRange)
+full_mov_df$Gender <- as.factor(full_mov_df$Gender)
+full_mov_df$Occupation <- as.factor(full_mov_df$Occupation)
+full_mov_df$ZipCode <- as.factor(full_mov_df$ZipCode)
+full_mov_df$MovieTitle <- as.factor(full_mov_df$MovieTitle)
+full_mov_df$ReleaseYear <- as.factor(full_mov_df$ReleaseYear)
+# converting generes to factors which are from col 15 to 32 in the full_mov_df
+full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.factor)
+
+# Lastly, checking the structure of the final full_mov_df dataframe
+str(full_mov_df)
+```
+
+***
+
+The next step would be to do some EDA to find out about:
+
+  1. How the data is distributed out in the dataframe (a plot of count vs generes)
+  2. Gender vs Age distributions
+  3. Occupation distributions
+  4. Trends:
+  
+    * Generes over Release years - to find out if there is there a change/popularity of Generes over time
+    * Age, Gender, Occupation vs Generes - to find out a little bit about users' and if there is a relationship with Generes
+    * Similar to above but against Release years - to find out whether users' preferences on Generes have changed over time 
+    * Similar to above but against Ranking - to find out the ranking behaviour of users
+
+There might be some more questions as I go through the above.
+
+***
+
+### Collaborative Filtering model methodology
+
+  1. Extract: Users vs MovieTitles vs Ratings dataframe
+  2. Split the dataframe into Training, CV and Test datasets
+    * Ensure that the data is randomly selected and is normally distributed in each of the datasets
+  3. Run a cosine similarity algorithm to find similar users and recommend movies that they have not yet seen
+  
