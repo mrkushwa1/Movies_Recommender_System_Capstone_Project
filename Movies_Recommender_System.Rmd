@@ -303,7 +303,7 @@ check_df(mdata, 0)
 ```
 
 Another observation based on the above output indicates that there are now 6408 records where a movie may be repeated across other Generes. Now creating a binary classification for the Generes:
-```{r movie_dataframe_mod5}
+```{r movie_dataframe_mod7}
 # Createing a 1's column in the mov_df dataframe where 1 indicates that the movie has been classified into certain Genere
 mdata$Type <- 1
 
