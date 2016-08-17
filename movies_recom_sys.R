@@ -54,7 +54,7 @@ head(mov_lines)
 
 # Transforming the lines into a Matrix and then into a mov_df dataframe
 Matrix <- do.call(rbind, strsplit(mov_lines,"::", fixed=TRUE))
-mov_df <- as.data.frame(Matrix)
+mov_df <- as.data.frame(Matrix, row.names = NULL, stringsAsFactors = FALSE)
 
 # Checking the first few records of the mov_df dataframe
 head(mov_df)
@@ -68,7 +68,7 @@ str(mov_df)
 
 # since all variable types are factors, some will need appropriate conversion
 # converting MovieTitle to character vector
-mov_df$MovieTitle <- as.character(mov_df$MovieTitle)
+#mov_df$MovieTitle <- as.character(mov_df$MovieTitle)
 
 # converting MovieID to numeric vector
 mov_df$MovieID <- as.numeric(mov_df$MovieID)
@@ -100,20 +100,20 @@ sapply(mov_df, function(y) sum(length(grep("[^[:alnum:]]", y))))
 mov_df <- cSplit(mov_df, "Genere", sep="|")
 #sapply(mov_df, class)
 #sapply(mov_df, function(y) sum(length(which(is.na(y)))))
-test(mov_df,0)
+check_df(mov_df,0)
 
 mdata <- melt(mov_df, id=c("MovieID","MovieTitle","ReleaseYear"))
 #sapply(mdata, function(y) sum(length(which(is.na(y)))))
-test(mdata, 0)
+check_df(mdata, 0)
 # removing records where value is NA
 mdata <- mdata[!is.na(mdata$value),]
 #sapply(mdata, function(y) sum(length(which(is.na(y)))))
-test(mdata, 0)
+check_df(mdata, 0)
 # The 1 indicates that the movie has been classified into certain Generes
 mdata$Type <- 1
 
 mov_df <- dcast(mdata, MovieID + MovieTitle + ReleaseYear ~ value, value.var="Type")
-test(mov_df,0)
+check_df(mov_df,0)
 
 # replacing all NA values with 0
 mov_df[is.na(mov_df)] <- 0
@@ -130,7 +130,7 @@ sapply(mov_df, function(y) sum(length(grep("[^[:alnum:]]", y))))
 usrs_lines <- readLines("users.dat")
 head(usrs_lines)
 Matrix <- do.call(rbind, strsplit(usrs_lines,"::", fixed=TRUE))
-usrs_df <- data.frame(Matrix, stringsAsFactors = FALSE)
+usrs_df <- as.data.frame(Matrix, row.names = NULL, stringsAsFactors = FALSE)
 names(usrs_df) <- c("UserID", "Gender", "Age", "OccupationID", "ZipCode")
 str(usrs_df)
 
@@ -162,7 +162,7 @@ rm(usrs_lines, Matrix)
 ratings_lines <- readLines("ratings.dat")
 head(ratings_lines)
 Matrix <- do.call(rbind, strsplit(ratings_lines,"::", fixed=TRUE))
-ratings_df <- data.frame(Matrix, stringsAsFactors = FALSE)
+ratings_df <- as.data.frame(Matrix, row.names = NULL, stringsAsFactors = FALSE)
 names(ratings_df) <- c("UserID", "MovieID", "Rating", "TimeStamp")
 str(ratings_df)
 rm(ratings_lines, Matrix)

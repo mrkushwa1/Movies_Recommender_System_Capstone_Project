@@ -13,7 +13,7 @@ The objective of this project is create a movies recommender system which utiliz
 
 The dataset that was chosen is from the "MovieLens 1M Dataset" section and the compressed file name was: "ml-1m.zip".
 
-The structure of the Movie data is such that it does not provide any Movie content information, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
+The structure of the Movie data is such that it does not provide any Movie content information except for Generes, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology in its ture form cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
 
 Based on this limitation, the approach is then to utlize the user based collaborative filtering method, which finds similarity between ratings of multiple users who are the closest to the target user, and then provide movies' recommendations to this user which they have not yet rated or seen.
 
@@ -229,7 +229,7 @@ Addressing point 1 above:
 ```{r movie_dataframe}
 # Transforming the mov_lines into a Matrix and then into a mov_df dataframe
 Matrix <- do.call(rbind, strsplit(mov_lines,"::", fixed=TRUE))
-mov_df <- as.data.frame(Matrix)
+mov_df <- as.data.frame(Matrix, row.names = NULL, stringAsFactors = FALSE)
 ```
 
 Addressing point 2 above:
@@ -247,12 +247,11 @@ check_df(mov_df,0)
 str(mov_df)
 ```
 
-Since all variables are factors, the MovieID will beed to be turned into numeric type and MovieTitle into Character such that string manipulations can be done.
+Converting MovieID to numeric type.
 
 ```{r movie_dataframe_mod2}
-# converting MovieTitle to character vector
+# converting MovieTitle to Character
 mov_df$MovieTitle <- as.character(mov_df$MovieTitle)
-
 # converting MovieID to numeric vector
 mov_df$MovieID <- as.numeric(mov_df$MovieID)
 ```
@@ -290,7 +289,7 @@ From the above 2 outputs, it can be seen that although Generes have been split i
 mdata <- melt(mov_df, id=c("MovieID","MovieTitle","ReleaseYear"))
 
 # Using the utility function to check the mdata dataframe
-check_df(mdata,0)
+check_df(mdata, 0)
 ```
 
 The total number of observations is now 23298 which is: 3883 movies * 6 Generes. This means that there are movies in the dataframe that are repeated and which do not fit into a particular Genere type. Hence, it is safe to remove these records.
@@ -310,7 +309,7 @@ mdata$Type <- 1
 # Widening the mov_df dataframe to have Generes as variables
 mov_df <- dcast(mdata, MovieID + MovieTitle + ReleaseYear ~ value, value.var="Type")
 
-check_df(mov_df,0)
+check_df(mov_df, 0)
 
 # replacing all NA values with 0
 mov_df[is.na(mov_df)] <- 0
@@ -342,7 +341,7 @@ Addressing point 1 above:
 ```{r usrs_dataframe}
 # Transforming the usrs_lines into a Matrix and then into a usrs_df dataframe
 Matrix <- do.call(rbind, strsplit(usrs_lines,"::", fixed=TRUE))
-usrs_df <- data.frame(Matrix, stringsAsFactors = FALSE)
+usrs_df <- as.data.frame(Matrix, row.names = NULL, stringAsFactors = FALSE)
 ```
 
 Addressing point 2 above:
@@ -447,7 +446,7 @@ Addressing point 1 above:
 ```{r ratings_dataframe}
 # reading the ratings.dat file
 Matrix <- do.call(rbind, strsplit(ratings_lines,"::", fixed=TRUE))
-ratings_df <- data.frame(Matrix, stringsAsFactors = FALSE)
+ratings_df <- as.data.frame(Matrix, row.names = NULL, stringAsFactors = FALSE)
 ```
 
 Addressing point 2 above:
@@ -501,11 +500,8 @@ check_df(full_mov_df, 0)
 str(full_mov_df)
 ```
 
-The utility function shows that there are 8825 records in the full_mov_df dataframe that contain NAs, starting from MovieTitle variable onwards. 
+The utility function shows that there are 0 NAs in the full_mov_df dataframe.
 
-### Here is where I don't understand why? Need Help!
-
-Question is that if there are movie titles with NAs for that user, then how can there be a rating value? Have I made a mistake in joining?
 
 ```{r full_mov_df_mod}
 # Checking for the number of unique movie titles
