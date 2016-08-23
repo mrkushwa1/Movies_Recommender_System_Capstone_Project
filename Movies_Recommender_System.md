@@ -273,6 +273,20 @@ head(mov_df)
 ```
 
 ```r
+tail(mov_df)
+```
+
+```
+##      MovieID                 MovieTitle         Genere
+## 3878    3947          Get Carter (1971)       Thriller
+## 3879    3948    Meet the Parents (2000)         Comedy
+## 3880    3949 Requiem for a Dream (2000)          Drama
+## 3881    3950           Tigerland (2000)          Drama
+## 3882    3951    Two Family House (2000)          Drama
+## 3883    3952      Contender, The (2000) Drama|Thriller
+```
+
+```r
 # Running the utility function to check the mov_df dataframe
 check_df(mov_df,0)
 ```
@@ -302,14 +316,14 @@ str(mov_df)
 ##  $ Genere    : Factor w/ 301 levels "Action","Action|Adventure",..: 146 116 208 186 177 64 208 107 1 38 ...
 ```
 
-Converting MovieID to numeric type.
+Converting MovieTitle to character so that string operations can be performed to extract the year from the title and MovieID to numeric data type:
 
 
 ```r
 # converting MovieTitle to Character
 mov_df$MovieTitle <- as.character(mov_df$MovieTitle)
 # converting MovieID to numeric vector
-mov_df$MovieID <- as.numeric(mov_df$MovieID)
+#mov_df$MovieID <- as.numeric(mov_df$MovieID)
 ```
 
 Addressing point 3 above:
@@ -332,11 +346,11 @@ head(mov_df)
 ```
 ##   MovieID                  MovieTitle                       Genere
 ## 1       1                   Toy Story  Animation|Children's|Comedy
-## 2    1056                     Jumanji Adventure|Children's|Fantasy
-## 3    2166            Grumpier Old Men               Comedy|Romance
-## 4    3228           Waiting to Exhale                 Comedy|Drama
-## 5    3339 Father of the Bride Part II                       Comedy
-## 6    3450                        Heat        Action|Crime|Thriller
+## 2       2                     Jumanji Adventure|Children's|Fantasy
+## 3       3            Grumpier Old Men               Comedy|Romance
+## 4       4           Waiting to Exhale                 Comedy|Drama
+## 5       5 Father of the Bride Part II                       Comedy
+## 6       6                        Heat        Action|Crime|Thriller
 ##   ReleaseYear
 ## 1        1995
 ## 2        1995
@@ -359,11 +373,11 @@ head(mov_df)
 ```
 ##    MovieID                  MovieTitle ReleaseYear  Genere_1   Genere_2
 ## 1:       1                   Toy Story        1995 Animation Children's
-## 2:    1056                     Jumanji        1995 Adventure Children's
-## 3:    2166            Grumpier Old Men        1995    Comedy    Romance
-## 4:    3228           Waiting to Exhale        1995    Comedy      Drama
-## 5:    3339 Father of the Bride Part II        1995    Comedy         NA
-## 6:    3450                        Heat        1995    Action      Crime
+## 2:       2                     Jumanji        1995 Adventure Children's
+## 3:       3            Grumpier Old Men        1995    Comedy    Romance
+## 4:       4           Waiting to Exhale        1995    Comedy      Drama
+## 5:       5 Father of the Bride Part II        1995    Comedy         NA
+## 6:       6                        Heat        1995    Action      Crime
 ##    Genere_3 Genere_4 Genere_5 Genere_6
 ## 1:   Comedy       NA       NA       NA
 ## 2:  Fantasy       NA       NA       NA
@@ -371,6 +385,27 @@ head(mov_df)
 ## 4:       NA       NA       NA       NA
 ## 5:       NA       NA       NA       NA
 ## 6: Thriller       NA       NA       NA
+```
+
+```r
+tail(mov_df)
+```
+
+```
+##    MovieID          MovieTitle ReleaseYear Genere_1 Genere_2 Genere_3
+## 1:    3947          Get Carter        1971 Thriller       NA       NA
+## 2:    3948    Meet the Parents        2000   Comedy       NA       NA
+## 3:    3949 Requiem for a Dream        2000    Drama       NA       NA
+## 4:    3950           Tigerland        2000    Drama       NA       NA
+## 5:    3951    Two Family House        2000    Drama       NA       NA
+## 6:    3952      Contender, The        2000    Drama Thriller       NA
+##    Genere_4 Genere_5 Genere_6
+## 1:       NA       NA       NA
+## 2:       NA       NA       NA
+## 3:       NA       NA       NA
+## 4:       NA       NA       NA
+## 5:       NA       NA       NA
+## 6:       NA       NA       NA
 ```
 
 ```r
@@ -489,11 +524,11 @@ head(mov_df)
 ```
 ##    MovieID                MovieTitle ReleaseYear Action Adventure
 ## 1:       1                 Toy Story        1995      0         0
-## 2:       2                 GoldenEye        1995      1         1
-## 3:       3                 City Hall        1996      0         0
-## 4:       4                   Curdled        1996      0         0
-## 5:       5 Associate, The (L'Associe        1982      0         0
-## 6:       6            Ed's Next Move        1996      0         0
+## 2:      10                 GoldenEye        1995      1         1
+## 3:     100                 City Hall        1996      0         0
+## 4:    1000                   Curdled        1996      0         0
+## 5:    1001 Associate, The (L'Associe        1982      0         0
+## 6:    1002            Ed's Next Move        1996      0         0
 ##    Animation Children's Comedy Crime Documentary Drama Fantasy Film-Noir
 ## 1:         1          1      1     0           0     0       0         0
 ## 2:         0          0      0     0           0     0       0         0
@@ -517,7 +552,7 @@ str(mov_df)
 
 ```
 ## Classes 'data.table' and 'data.frame':	3883 obs. of  21 variables:
-##  $ MovieID    : num  1 2 3 4 5 6 7 8 9 10 ...
+##  $ MovieID    : Factor w/ 3883 levels "1","10","100",..: 1 2 3 4 5 6 7 8 9 10 ...
 ##  $ MovieTitle : chr  "Toy Story" "GoldenEye" "City Hall" "Curdled" ...
 ##  $ ReleaseYear: num  1995 1995 1996 1996 1982 ...
 ##  $ Action     : num  0 1 0 0 0 0 0 1 0 0 ...
@@ -644,7 +679,7 @@ usrs_df$ZipCode <- sub("(\\d{5}).*", "\\1", usrs_df$ZipCode)
 
 ```r
 # changing all columns but Gender to numeric
-usrs_df[, colnames(usrs_df) != "Gender"] <- lapply(usrs_df[, colnames(usrs_df) != "Gender"], as.numeric)
+#usrs_df[, colnames(usrs_df) != "Gender"] <- lapply(usrs_df[, colnames(usrs_df) != "Gender"], as.numeric)
 
 # checking the structure of the usrs_df
 str(usrs_df)
@@ -652,11 +687,11 @@ str(usrs_df)
 
 ```
 ## 'data.frame':	6040 obs. of  5 variables:
-##  $ UserID      : num  1 1112 2223 3334 4445 ...
+##  $ UserID      : Factor w/ 6040 levels "1","10","100",..: 1 1112 2223 3334 4445 5556 5708 5819 5930 2 ...
 ##  $ Gender      : Factor w/ 2 levels "F","M": 1 2 2 2 2 1 2 2 2 1 ...
-##  $ Age         : num  1 7 3 5 3 6 4 3 3 4 ...
-##  $ OccupationID: num  3 9 8 19 14 21 2 5 10 2 ...
-##  $ ZipCode     : num  48067 70072 55117 2460 55455 ...
+##  $ Age         : Factor w/ 7 levels "1","18","25",..: 1 7 3 5 3 6 4 3 3 4 ...
+##  $ OccupationID: Factor w/ 21 levels "0","1","10","11",..: 3 9 8 19 14 21 2 5 10 2 ...
+##  $ ZipCode     : chr  "48067" "70072" "55117" "02460" ...
 ```
 
 ```r
@@ -676,13 +711,14 @@ Addressing point 3 above:
 
 ```r
 # creating the ages ref dataframe
-age_df <- read.csv("ages.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("numeric","character"))
+age_df <- read.csv("ages.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("factor","character"))
 
 # assigning correct header names from the read_me file
 names(age_df) <- c("Age", "AgeRange")
 
 # checking the first few records of the age_df
-head(age_df)
+#head(age_df)
+age_df
 ```
 
 ```
@@ -693,6 +729,7 @@ head(age_df)
 ## 4  35      35-44
 ## 5  45      45-49
 ## 6  50      50-55
+## 7  56        56+
 ```
 
 ```r
@@ -702,30 +739,46 @@ str(age_df)
 
 ```
 ## 'data.frame':	7 obs. of  2 variables:
-##  $ Age     : num  1 18 25 35 45 50 56
+##  $ Age     : Factor w/ 7 levels "1","18","25",..: 1 2 3 4 5 6 7
 ##  $ AgeRange: chr  "  Under 18" "  18-24" "  25-34" "  35-44" ...
 ```
 
 
 ```r
 # creating the occupation ref dataframe
-occup_df <- read.csv("occupation.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("numeric","character"))
+occup_df <- read.csv("occupation.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("factor","character"))
 
 # assigning correct header names from the read_me file
 names(occup_df) <- c("OccupationID", "Occupation")
 
 # checking the first few records of the occup_df
-head(occup_df)
+#head(occup_df)
+occup_df
 ```
 
 ```
-##   OccupationID               Occupation
-## 1            0   other or not specified
-## 2            1        academic/educator
-## 3            2                   artist
-## 4            3           clerical/admin
-## 5            4     college/grad student
-## 6            5         customer service
+##    OccupationID               Occupation
+## 1             0   other or not specified
+## 2             1        academic/educator
+## 3             2                   artist
+## 4             3           clerical/admin
+## 5             4     college/grad student
+## 6             5         customer service
+## 7             6       doctor/health care
+## 8             7     executive/managerial
+## 9             8                   farmer
+## 10            9                homemaker
+## 11           10             K-12 student
+## 12           11                   lawyer
+## 13           12               programmer
+## 14           13                  retired
+## 15           14          sales/marketing
+## 16           15                scientist
+## 17           16            self-employed
+## 18           17      technician/engineer
+## 19           18      tradesman/craftsman
+## 20           19               unemployed
+## 21           20                   writer
 ```
 
 ```r
@@ -735,7 +788,7 @@ str(occup_df)
 
 ```
 ## 'data.frame':	21 obs. of  2 variables:
-##  $ OccupationID: num  0 1 2 3 4 5 6 7 8 9 ...
+##  $ OccupationID: Factor w/ 21 levels "0","1","10","11",..: 1 2 13 15 16 17 18 19 20 21 ...
 ##  $ Occupation  : chr  "  other or not specified" "  academic/educator" "  artist" "  clerical/admin" ...
 ```
 
@@ -749,19 +802,40 @@ usrs_df <- left_join(usrs_df, age_df, by = "Age")
 # joining the occup_df to the usrs_df by OccupationID
 usrs_df <- left_join(usrs_df, occup_df, by = "OccupationID")
 
+check_df(usrs_df,0)
+```
+
+```
+## [1] "Checking for the total number of records in the dataframe to ensure completeness:"
+## 
+##       UserID       Gender          Age OccupationID      ZipCode 
+##         6040         6040         6040         6040         6040 
+##     AgeRange   Occupation 
+##         6040         6040 
+## 
+## 
+## [1] "Checking for the total number of missing values (NA) in the dataframe if any:"
+## 
+##       UserID       Gender          Age OccupationID      ZipCode 
+##            0            0            0            0            0 
+##     AgeRange   Occupation 
+##            0            0
+```
+
+```r
 # checking the structure of the usrs_df
 str(usrs_df)
 ```
 
 ```
 ## 'data.frame':	6040 obs. of  7 variables:
-##  $ UserID      : num  1 1112 2223 3334 4445 ...
+##  $ UserID      : Factor w/ 6040 levels "1","10","100",..: 1 1112 2223 3334 4445 5556 5708 5819 5930 2 ...
 ##  $ Gender      : Factor w/ 2 levels "F","M": 1 2 2 2 2 1 2 2 2 1 ...
-##  $ Age         : num  1 7 3 5 3 6 4 3 3 4 ...
-##  $ OccupationID: num  3 9 8 19 14 21 2 5 10 2 ...
-##  $ ZipCode     : num  48067 70072 55117 2460 55455 ...
-##  $ AgeRange    : chr  "  Under 18" NA NA NA ...
-##  $ Occupation  : chr  "  clerical/admin" "  homemaker" "  farmer" "  unemployed" ...
+##  $ Age         : Factor w/ 7 levels "1","18","25",..: 1 7 3 5 3 6 4 3 3 4 ...
+##  $ OccupationID: Factor w/ 21 levels "0","1","10","11",..: 3 9 8 19 14 21 2 5 10 2 ...
+##  $ ZipCode     : chr  "48067" "70072" "55117" "02460" ...
+##  $ AgeRange    : chr  "  Under 18" "  56+" "  25-34" "  45-49" ...
+##  $ Occupation  : chr  "  K-12 student" "  self-employed" "  scientist" "  executive/managerial" ...
 ```
 
 ```r
@@ -769,17 +843,52 @@ str(usrs_df)
 usrs_df <- usrs_df[, c("UserID", "Age", "AgeRange", "Gender", "OccupationID", "Occupation", "ZipCode")]
 
 # checking the first few records of the usrs_df
-head(usrs_df)
+head(usrs_df,20)
 ```
 
 ```
-##   UserID Age   AgeRange Gender OccupationID        Occupation ZipCode
-## 1      1   1   Under 18      F            3    clerical/admin   48067
-## 2   1112   7       <NA>      M            9         homemaker   70072
-## 3   2223   3       <NA>      M            8            farmer   55117
-## 4   3334   5       <NA>      M           19        unemployed    2460
-## 5   4445   3       <NA>      M           14   sales/marketing   55455
-## 6   5556   6       <NA>      F           21              <NA>   55117
+##    UserID Age   AgeRange Gender OccupationID               Occupation
+## 1       1   1   Under 18      F           10             K-12 student
+## 2       2  56        56+      M           16            self-employed
+## 3       3  25      25-34      M           15                scientist
+## 4       4  45      45-49      M            7     executive/managerial
+## 5       5  25      25-34      M           20                   writer
+## 6       6  50      50-55      F            9                homemaker
+## 7       7  35      35-44      M            1        academic/educator
+## 8       8  25      25-34      M           12               programmer
+## 9       9  25      25-34      M           17      technician/engineer
+## 10     10  35      35-44      F            1        academic/educator
+## 11     11  25      25-34      F            1        academic/educator
+## 12     12  25      25-34      M           12               programmer
+## 13     13  45      45-49      M            1        academic/educator
+## 14     14  35      35-44      M            0   other or not specified
+## 15     15  25      25-34      M            7     executive/managerial
+## 16     16  35      35-44      F            0   other or not specified
+## 17     17  50      50-55      M            1        academic/educator
+## 18     18  18      18-24      F            3           clerical/admin
+## 19     19   1   Under 18      M           10             K-12 student
+## 20     20  25      25-34      M           14          sales/marketing
+##    ZipCode
+## 1    48067
+## 2    70072
+## 3    55117
+## 4    02460
+## 5    55455
+## 6    55117
+## 7    06810
+## 8    11413
+## 9    61614
+## 10   95370
+## 11   04093
+## 12   32793
+## 13   93304
+## 14   60126
+## 15   22903
+## 16   20670
+## 17   95350
+## 18   95825
+## 19   48073
+## 20   55113
 ```
 
 The usrs_df is now complete with all the correct variables in place.
@@ -841,7 +950,7 @@ Addressing point 3 above:
 
 ```r
 # Changing all columns to numeric data type so that date and time operations can be performed on the timestamp
-ratings_df[, colnames(ratings_df)] <- lapply(ratings_df[, colnames(ratings_df)], as.numeric)
+ratings_df$TimeStamp <- as.numeric(ratings_df$TimeStamp)
 
 # Now epoch or UNIX time is given in the TimeStamp - so extracting the date and time from it
 ratings_df$Date <- strftime(as.POSIXct(ratings_df$TimeStamp, origin = "1970-01-01", tz =""),"%Y-%m-%d")
@@ -853,12 +962,12 @@ head(ratings_df)
 
 ```
 ##   UserID MovieID Rating TimeStamp       Date     Time
-## 1      1     190      5    423354 1970-01-05 16:35:54
-## 2      1    3375      3    423369 1970-01-05 16:36:09
-## 3      1    3616      3    423366 1970-01-05 16:36:06
-## 4      1    2504      4    423352 1970-01-05 16:35:52
-## 5      1    1375      5    426162 1970-01-05 17:22:42
-## 6      1     193      3    423376 1970-01-05 16:36:16
+## 1      1    1193      5    423354 1970-01-05 16:35:54
+## 2      1     661      3    423369 1970-01-05 16:36:09
+## 3      1     914      3    423366 1970-01-05 16:36:06
+## 4      1    3408      4    423352 1970-01-05 16:35:52
+## 5      1    2355      5    426162 1970-01-05 17:22:42
+## 6      1    1197      3    423376 1970-01-05 16:36:16
 ```
 
 ```r
@@ -868,9 +977,9 @@ str(ratings_df)
 
 ```
 ## 'data.frame':	1000209 obs. of  6 variables:
-##  $ UserID   : num  1 1 1 1 1 1 1 1 1 1 ...
-##  $ MovieID  : num  190 3375 3616 2504 1375 ...
-##  $ Rating   : num  5 3 3 4 5 3 5 5 4 4 ...
+##  $ UserID   : Factor w/ 6040 levels "1","10","100",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ MovieID  : Factor w/ 3706 levels "1","10","100",..: 190 3375 3616 2504 1375 193 291 1862 3308 3621 ...
+##  $ Rating   : Factor w/ 5 levels "1","2","3","4",..: 5 3 3 4 5 3 5 5 4 4 ...
 ##  $ TimeStamp: num  423354 423369 423366 423352 426162 ...
 ##  $ Date     : chr  "1970-01-05" "1970-01-05" "1970-01-05" "1970-01-05" ...
 ##  $ Time     : chr  "16:35:54" "16:36:09" "16:36:06" "16:35:52" ...
@@ -890,47 +999,54 @@ full_mov_df <- left_join(ratings_df, usrs_df, by = "UserID")
 
 # joining the mov_df with the full_mov_df created in the above step by MovieID column
 full_mov_df <- left_join(full_mov_df, mov_df, by = "MovieID")
+```
 
+```
+## Warning in left_join_impl(x, y, by$x, by$y): joining factors with different
+## levels, coercing to character vector
+```
+
+```r
 # checking the first few records of the full_mov_df
 head(full_mov_df)
 ```
 
 ```
 ##   UserID MovieID Rating TimeStamp       Date     Time Age   AgeRange
-## 1      1     190      5    423354 1970-01-05 16:35:54   1   Under 18
-## 2      1    3375      3    423369 1970-01-05 16:36:09   1   Under 18
-## 3      1    3616      3    423366 1970-01-05 16:36:06   1   Under 18
-## 4      1    2504      4    423352 1970-01-05 16:35:52   1   Under 18
-## 5      1    1375      5    426162 1970-01-05 17:22:42   1   Under 18
-## 6      1     193      3    423376 1970-01-05 16:36:16   1   Under 18
-##   Gender OccupationID       Occupation ZipCode
-## 1      F            3   clerical/admin   48067
-## 2      F            3   clerical/admin   48067
-## 3      F            3   clerical/admin   48067
-## 4      F            3   clerical/admin   48067
-## 5      F            3   clerical/admin   48067
-## 6      F            3   clerical/admin   48067
-##                                     MovieTitle ReleaseYear Action
-## 1                                  Bob Roberts        1992      0
-## 2                           Secret Garden, The        1993      0
-## 3    Gold Diggers: The Secret of Bear Mountain        1995      0
-## 4 Black Tar Heroin: The Dark End of the Street        1999      0
-## 5                                        Them!        1954      0
-## 6                               Grosse Fatigue        1994      0
-##   Adventure Animation Children's Comedy Crime Documentary Drama Fantasy
-## 1         0         0          0      1     0           0     0       0
-## 2         0         0          1      0     0           0     1       0
-## 3         1         0          1      0     0           0     0       0
-## 4         0         0          0      0     0           1     0       0
-## 5         0         0          0      0     0           0     0       0
-## 6         0         0          0      1     0           0     0       0
-##   Film-Noir Horror Musical Mystery Romance Sci-Fi Thriller War Western
-## 1         0      0       0       0       0      0        0   0       0
-## 2         0      0       0       0       0      0        0   0       0
-## 3         0      0       0       0       0      0        0   0       0
-## 4         0      0       0       0       0      0        0   0       0
-## 5         0      0       0       0       0      1        1   1       0
-## 6         0      0       0       0       0      0        0   0       0
+## 1      1    1193      5    423354 1970-01-05 16:35:54   1   Under 18
+## 2      1     661      3    423369 1970-01-05 16:36:09   1   Under 18
+## 3      1     914      3    423366 1970-01-05 16:36:06   1   Under 18
+## 4      1    3408      4    423352 1970-01-05 16:35:52   1   Under 18
+## 5      1    2355      5    426162 1970-01-05 17:22:42   1   Under 18
+## 6      1    1197      3    423376 1970-01-05 16:36:16   1   Under 18
+##   Gender OccupationID     Occupation ZipCode
+## 1      F           10   K-12 student   48067
+## 2      F           10   K-12 student   48067
+## 3      F           10   K-12 student   48067
+## 4      F           10   K-12 student   48067
+## 5      F           10   K-12 student   48067
+## 6      F           10   K-12 student   48067
+##                        MovieTitle ReleaseYear Action Adventure Animation
+## 1 One Flew Over the Cuckoo's Nest        1975      0         0         0
+## 2       James and the Giant Peach        1996      0         0         1
+## 3                    My Fair Lady        1964      0         0         0
+## 4                 Erin Brockovich        2000      0         0         0
+## 5                   Bug's Life, A        1998      0         0         1
+## 6             Princess Bride, The        1987      1         1         0
+##   Children's Comedy Crime Documentary Drama Fantasy Film-Noir Horror
+## 1          0      0     0           0     1       0         0      0
+## 2          1      0     0           0     0       0         0      0
+## 3          0      0     0           0     0       0         0      0
+## 4          0      0     0           0     1       0         0      0
+## 5          1      1     0           0     0       0         0      0
+## 6          0      1     0           0     0       0         0      0
+##   Musical Mystery Romance Sci-Fi Thriller War Western
+## 1       0       0       0      0        0   0       0
+## 2       1       0       0      0        0   0       0
+## 3       1       0       1      0        0   0       0
+## 4       0       0       0      0        0   0       0
+## 5       0       0       0      0        0   0       0
+## 6       0       0       1      0        0   0       0
 ```
 
 ```r
@@ -962,9 +1078,9 @@ check_df(full_mov_df, 0)
 ##       UserID      MovieID       Rating    TimeStamp         Date 
 ##            0            0            0            0            0 
 ##         Time          Age     AgeRange       Gender OccupationID 
-##            0            0       972998            0            0 
+##            0            0            0            0            0 
 ##   Occupation      ZipCode   MovieTitle  ReleaseYear       Action 
-##        11345            0            0            0            0 
+##            0            0            0            0            0 
 ##    Adventure    Animation   Children's       Comedy        Crime 
 ##            0            0            0            0            0 
 ##  Documentary        Drama      Fantasy    Film-Noir       Horror 
@@ -982,38 +1098,38 @@ str(full_mov_df)
 
 ```
 ## 'data.frame':	1000209 obs. of  32 variables:
-##  $ UserID      : num  1 1 1 1 1 1 1 1 1 1 ...
-##  $ MovieID     : num  190 3375 3616 2504 1375 ...
-##  $ Rating      : num  5 3 3 4 5 3 5 5 4 4 ...
+##  $ UserID      : Factor w/ 6040 levels "1","10","100",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ MovieID     : chr  "1193" "661" "914" "3408" ...
+##  $ Rating      : Factor w/ 5 levels "1","2","3","4",..: 5 3 3 4 5 3 5 5 4 4 ...
 ##  $ TimeStamp   : num  423354 423369 423366 423352 426162 ...
 ##  $ Date        : chr  "1970-01-05" "1970-01-05" "1970-01-05" "1970-01-05" ...
 ##  $ Time        : chr  "16:35:54" "16:36:09" "16:36:06" "16:35:52" ...
-##  $ Age         : num  1 1 1 1 1 1 1 1 1 1 ...
+##  $ Age         : Factor w/ 7 levels "1","18","25",..: 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ AgeRange    : chr  "  Under 18" "  Under 18" "  Under 18" "  Under 18" ...
 ##  $ Gender      : Factor w/ 2 levels "F","M": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ OccupationID: num  3 3 3 3 3 3 3 3 3 3 ...
-##  $ Occupation  : chr  "  clerical/admin" "  clerical/admin" "  clerical/admin" "  clerical/admin" ...
-##  $ ZipCode     : num  48067 48067 48067 48067 48067 ...
-##  $ MovieTitle  : chr  "Bob Roberts" "Secret Garden, The" "Gold Diggers: The Secret of Bear Mountain" "Black Tar Heroin: The Dark End of the Street" ...
-##  $ ReleaseYear : num  1992 1993 1995 1999 1954 ...
-##  $ Action      : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Adventure   : num  0 0 1 0 0 0 0 0 0 0 ...
-##  $ Animation   : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Children's  : num  0 1 1 0 0 0 0 0 0 0 ...
-##  $ Comedy      : num  1 0 0 0 0 1 0 0 1 0 ...
+##  $ OccupationID: Factor w/ 21 levels "0","1","10","11",..: 3 3 3 3 3 3 3 3 3 3 ...
+##  $ Occupation  : chr  "  K-12 student" "  K-12 student" "  K-12 student" "  K-12 student" ...
+##  $ ZipCode     : chr  "48067" "48067" "48067" "48067" ...
+##  $ MovieTitle  : chr  "One Flew Over the Cuckoo's Nest" "James and the Giant Peach" "My Fair Lady" "Erin Brockovich" ...
+##  $ ReleaseYear : num  1975 1996 1964 2000 1998 ...
+##  $ Action      : num  0 0 0 0 0 1 1 0 0 0 ...
+##  $ Adventure   : num  0 0 0 0 0 1 1 0 0 1 ...
+##  $ Animation   : num  0 1 0 0 1 0 0 0 1 0 ...
+##  $ Children's  : num  0 1 0 0 1 0 0 0 1 1 ...
+##  $ Comedy      : num  0 0 0 0 1 1 0 1 0 0 ...
 ##  $ Crime       : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Documentary : num  0 0 0 1 0 0 0 0 0 1 ...
-##  $ Drama       : num  0 1 0 0 0 0 0 1 0 0 ...
+##  $ Documentary : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Drama       : num  1 0 0 1 0 0 1 1 0 1 ...
 ##  $ Fantasy     : num  0 0 0 0 0 0 0 0 0 0 ...
 ##  $ Film-Noir   : num  0 0 0 0 0 0 0 0 0 0 ...
 ##  $ Horror      : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Musical     : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Musical     : num  0 1 1 0 0 0 0 0 1 1 ...
 ##  $ Mystery     : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Romance     : num  0 0 0 0 0 0 0 0 1 0 ...
-##  $ Sci-Fi      : num  0 0 0 0 1 0 0 0 0 0 ...
-##  $ Thriller    : num  0 0 0 0 1 0 0 0 0 0 ...
-##  $ War         : num  0 0 0 0 1 0 0 0 0 0 ...
-##  $ Western     : num  0 0 0 0 0 0 1 0 0 0 ...
+##  $ Romance     : num  0 0 1 0 0 1 0 0 0 0 ...
+##  $ Sci-Fi      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Thriller    : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ War         : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Western     : num  0 0 0 0 0 0 0 0 0 0 ...
 ```
 
 The utility function shows that there are 0 NAs in the full_mov_df dataframe.
@@ -1035,7 +1151,7 @@ Finally, from the sturcture output of the complete full_mov_df dataframe, it is 
 
 
 ```r
-full_mov_df$Rating <- as.factor(full_mov_df$Rating)
+#full_mov_df$Rating <- as.factor(full_mov_df$Rating)
 full_mov_df$AgeRange <- as.factor(full_mov_df$AgeRange)
 full_mov_df$Gender <- as.factor(full_mov_df$Gender)
 full_mov_df$Occupation <- as.factor(full_mov_df$Occupation)
@@ -1043,7 +1159,7 @@ full_mov_df$ZipCode <- as.factor(full_mov_df$ZipCode)
 full_mov_df$MovieTitle <- as.factor(full_mov_df$MovieTitle)
 full_mov_df$ReleaseYear <- as.factor(full_mov_df$ReleaseYear)
 # converting generes to factors which are from col 15 to 32 in the full_mov_df
-full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.factor)
+#full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.factor)
 
 # Lastly, checking the structure of the final full_mov_df dataframe
 str(full_mov_df)
@@ -1051,38 +1167,38 @@ str(full_mov_df)
 
 ```
 ## 'data.frame':	1000209 obs. of  32 variables:
-##  $ UserID      : num  1 1 1 1 1 1 1 1 1 1 ...
-##  $ MovieID     : num  190 3375 3616 2504 1375 ...
+##  $ UserID      : Factor w/ 6040 levels "1","10","100",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ MovieID     : chr  "1193" "661" "914" "3408" ...
 ##  $ Rating      : Factor w/ 5 levels "1","2","3","4",..: 5 3 3 4 5 3 5 5 4 4 ...
 ##  $ TimeStamp   : num  423354 423369 423366 423352 426162 ...
 ##  $ Date        : chr  "1970-01-05" "1970-01-05" "1970-01-05" "1970-01-05" ...
 ##  $ Time        : chr  "16:35:54" "16:36:09" "16:36:06" "16:35:52" ...
-##  $ Age         : num  1 1 1 1 1 1 1 1 1 1 ...
-##  $ AgeRange    : Factor w/ 1 level "  Under 18": 1 1 1 1 1 1 1 1 1 1 ...
+##  $ Age         : Factor w/ 7 levels "1","18","25",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ AgeRange    : Factor w/ 7 levels "  18-24","  25-34",..: 7 7 7 7 7 7 7 7 7 7 ...
 ##  $ Gender      : Factor w/ 2 levels "F","M": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ OccupationID: num  3 3 3 3 3 3 3 3 3 3 ...
-##  $ Occupation  : Factor w/ 20 levels "  academic/educator",..: 3 3 3 3 3 3 3 3 3 3 ...
-##  $ ZipCode     : Factor w/ 3402 levels "231","606","681",..: 1575 1575 1575 1575 1575 1575 1575 1575 1575 1575 ...
-##  $ MovieTitle  : Factor w/ 3668 levels "'burbs, The",..: 449 2892 1342 405 3274 1400 3458 3420 1588 2091 ...
-##  $ ReleaseYear : Factor w/ 81 levels "1919","1920",..: 73 74 76 80 35 75 73 80 75 75 ...
-##  $ Action      : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Adventure   : Factor w/ 2 levels "0","1": 1 1 2 1 1 1 1 1 1 1 ...
-##  $ Animation   : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Children's  : Factor w/ 2 levels "0","1": 1 2 2 1 1 1 1 1 1 1 ...
-##  $ Comedy      : Factor w/ 2 levels "0","1": 2 1 1 1 1 2 1 1 2 1 ...
-##  $ Crime       : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Documentary : Factor w/ 2 levels "0","1": 1 1 1 2 1 1 1 1 1 2 ...
-##  $ Drama       : Factor w/ 2 levels "0","1": 1 2 1 1 1 1 1 2 1 1 ...
-##  $ Fantasy     : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Film-Noir   : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Horror      : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Musical     : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Mystery     : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Romance     : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 2 1 ...
-##  $ Sci-Fi      : Factor w/ 2 levels "0","1": 1 1 1 1 2 1 1 1 1 1 ...
-##  $ Thriller    : Factor w/ 2 levels "0","1": 1 1 1 1 2 1 1 1 1 1 ...
-##  $ War         : Factor w/ 2 levels "0","1": 1 1 1 1 2 1 1 1 1 1 ...
-##  $ Western     : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 2 1 1 1 ...
+##  $ OccupationID: Factor w/ 21 levels "0","1","10","11",..: 3 3 3 3 3 3 3 3 3 3 ...
+##  $ Occupation  : Factor w/ 21 levels "  academic/educator",..: 10 10 10 10 10 10 10 10 10 10 ...
+##  $ ZipCode     : Factor w/ 3402 levels "00231","00606",..: 1575 1575 1575 1575 1575 1575 1575 1575 1575 1575 ...
+##  $ MovieTitle  : Factor w/ 3664 levels "'burbs, The",..: 2424 1723 2264 1049 556 2624 345 670 3021 3617 ...
+##  $ ReleaseYear : Factor w/ 81 levels "1919","1920",..: 56 77 45 81 79 68 40 64 18 20 ...
+##  $ Action      : num  0 0 0 0 0 1 1 0 0 0 ...
+##  $ Adventure   : num  0 0 0 0 0 1 1 0 0 1 ...
+##  $ Animation   : num  0 1 0 0 1 0 0 0 1 0 ...
+##  $ Children's  : num  0 1 0 0 1 0 0 0 1 1 ...
+##  $ Comedy      : num  0 0 0 0 1 1 0 1 0 0 ...
+##  $ Crime       : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Documentary : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Drama       : num  1 0 0 1 0 0 1 1 0 1 ...
+##  $ Fantasy     : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Film-Noir   : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Horror      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Musical     : num  0 1 1 0 0 0 0 0 1 1 ...
+##  $ Mystery     : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Romance     : num  0 0 1 0 0 1 0 0 0 0 ...
+##  $ Sci-Fi      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Thriller    : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ War         : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Western     : num  0 0 0 0 0 0 0 0 0 0 ...
 ```
 
 ***
@@ -1090,14 +1206,105 @@ str(full_mov_df)
 The next step would be to do some EDA to find out about:
 
   1. How the data is distributed out in the dataframe (a plot of count vs generes)
-  2. Gender vs Age distributions
-  3. Occupation distributions
+
+```r
+# converting the generes back to numeric to allow for counting
+#full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.numeric)
+# creating a genere distribution dataframe
+genere_dist <- full_mov_df %>% 
+  select(Action:Western) %>% 
+  summarise_each(funs(sum)) %>% 
+  gather(Genere, Freq, Action:Western) %>%
+  arrange(desc(Freq))
+```
+
+Plotting the genere distribution of the dataset
+![](Movies_Recommender_System_files/figure-html/genere_dist_plot-1.png)\
+
+![](Movies_Recommender_System_files/figure-html/genere_dist_plot2-1.png)\
+
+The dataset shows a Right skewed distribution, where the Comedy and Drama generes make up a noticable part of the full_mov_df (approx. 35%), followed by Action and Thriller. The other generes appear grouped with similar number of occurances in the dataset (i.e. Scifi, Romance and Adventure seem to have between 5%-7% share each, Crime, Horror, Children's and War seem to be between 2.5%-3.5%, and so forth) 
+
+  2. Gender vs Age distributions - It would be interesting to see how the users are distirbuted across the genders 
+
+```r
+ggplot(full_mov_df, aes(AgeRange, fill = Gender)) + geom_bar() + scale_y_continuous(labels = comma)
+```
+
+![](Movies_Recommender_System_files/figure-html/gender_age_dist-1.png)\
+
+It appears that there is a significantly larger portion of male users in the full_mov_df than female users. It appears that the agerange from 18 to 44 makes up the most of the watched movies in the dataset, with 25-34 years of age leading the group. It would make sense as this is the age group where most of us are working in full swing and perhaps carving paths for raising families. As the users grow older, the number of movies watched decreases significantly; again, a not so surprising fact, that people would be busy raising families and enjoying time performaing other activities (outdoor perhaps). 
+
+
+  3. Occupation Gender and Age distributions together - The idea here is to see if there is any relationship between age, gender and occupations. Perhaps, a particular occupation would house a greater agerange than others, and that in turn might prefer to watch a particular kind of genere.
+  
+
+```r
+ggplot(full_mov_df, aes(AgeRange, fill = Gender)) + facet_wrap(~Occupation, nrow = 7, ncol = 3) + geom_bar() + scale_y_continuous(labels = comma)
+```
+
+![](Movies_Recommender_System_files/figure-html/occup_gender_age_dist-1.png)\
+
+A few occupations stand out where quite a lot of movies have been watched. A large number of them fall under college/grad student occupation, followed by other or not specified, executive/managerial, technician/engineer and the rest are relatively small proportion. As indicated above, the popular age groups obtained above seem to hold. It makes sense that 18-24 is the range where most people go to college. The gender disribution does not change from before either.
+
   4. Trends:
   
+      * Age, Gender, Occupation vs Generes - to find out a little bit about users' and if a particular agerange has preference on particular generes
+
+```r
+age_gndr_occp_genre_dist <- full_mov_df %>%
+  select(AgeRange, Gender, Occupation, Action:Western) %>% 
+  group_by(AgeRange, Gender, Occupation) %>% 
+  summarise_each(funs(sum), Action:Western) %>% 
+  gather(Genere, Freq, Action:Western, -c(AgeRange, Gender, Occupation))
+```
+
+
+```r
+ggplot(age_gndr_occp_genre_dist, aes(x=reorder(Genere, -Freq), y=Freq, fill= AgeRange)) + geom_bar(stat = "identity") + scale_y_continuous(labels = comma)
+```
+
+![](Movies_Recommender_System_files/figure-html/age_gender_genere_dist_plot-1.png)\
+
+The output does not say much except that 25-34 agerange makes up the largest chunk of the distribution across all the generes. This was also noticed in the above plots.
+
+
     * Generes over Release years - to find out if there is there a change/popularity of Generes over time
-    * Age, Gender, Occupation vs Generes - to find out a little bit about users' and if there is a relationship with Generes
-    * Similar to above but against Release years - to find out whether users' preferences on Generes have changed over time 
+    
+
+```r
+genere_relyear_dist <- full_mov_df %>% select(ReleaseYear, Action:Western) %>% group_by(ReleaseYear) %>% summarise_each(funs(sum), Action:Western)  %>% gather(Genere, Freq, Action:Western, -ReleaseYear)
+
+# plotting the distribution
+genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
+ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, nrow = 7, ncol=3)
+```
+
+![](Movies_Recommender_System_files/figure-html/genere_relyear_dist-1.png)\
+
+It looks like there is not much sensible data present before 1970, to be able to really observe a trend if there way any. 
+
+Refining the plot and taking years from 1970 onwards:
+
+```r
+genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
+ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, ncol=2)
+```
+
+![](Movies_Recommender_System_files/figure-html/genere_relyear_dist_mod-1.png)\
+
+Here is seems that Drama, Comedy, Action, Thriller and Romance are the generes that gained in popularity over time. The rest of the generes did not exhibit this level of increase.
+
+#### Note to Amit: We can talk about these charts on Wednesday and whether it makes sense to do any feature engineering.. I am not sure when it comes to collaborative filtering..
+***
+***
+    
+    * Similar to above but against Release years - to find out whether users' preferences on Generes have changed over time
+
+
+    
     * Similar to above but against Ranking - to find out the ranking behaviour of users
+
 
 There might be some more questions as I go through the above.
 

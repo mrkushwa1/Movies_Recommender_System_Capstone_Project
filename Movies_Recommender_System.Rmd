@@ -239,6 +239,7 @@ names(mov_df) <- c("MovieID", "MovieTitle","Genere")
 
 # Checking the first few records of the mov_df dataframe
 head(mov_df)
+tail(mov_df)
 
 # Running the utility function to check the mov_df dataframe
 check_df(mov_df,0)
@@ -247,13 +248,13 @@ check_df(mov_df,0)
 str(mov_df)
 ```
 
-Converting MovieID to numeric type.
+Converting MovieTitle to character so that string operations can be performed to extract the year from the title and MovieID to numeric data type:
 
 ```{r movie_dataframe_mod2}
 # converting MovieTitle to Character
 mov_df$MovieTitle <- as.character(mov_df$MovieTitle)
 # converting MovieID to numeric vector
-mov_df$MovieID <- as.numeric(mov_df$MovieID)
+#mov_df$MovieID <- as.numeric(mov_df$MovieID)
 ```
 
 Addressing point 3 above:
@@ -279,6 +280,7 @@ mov_df <- cSplit(mov_df, "Genere", sep="|")
 
 # checking the first few observatins
 head(mov_df)
+tail(mov_df)
 #sapply(mov_df, class)
 #sapply(mov_df, function(y) sum(length(which(is.na(y)))))
 check_df(mov_df,0)
@@ -370,7 +372,7 @@ usrs_df$ZipCode <- sub("(\\d{5}).*", "\\1", usrs_df$ZipCode)
 
 ```{r usrs_dataframe_mod3}
 # changing all columns but Gender to numeric
-usrs_df[, colnames(usrs_df) != "Gender"] <- lapply(usrs_df[, colnames(usrs_df) != "Gender"], as.numeric)
+#usrs_df[, colnames(usrs_df) != "Gender"] <- lapply(usrs_df[, colnames(usrs_df) != "Gender"], as.numeric)
 
 # checking the structure of the usrs_df
 str(usrs_df)
@@ -385,28 +387,28 @@ Addressing point 3 above:
   
 ```{r age_dataframe}
 # creating the ages ref dataframe
-age_df <- read.csv("ages.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("numeric","character"))
+age_df <- read.csv("ages.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("factor","character"))
 
 # assigning correct header names from the read_me file
 names(age_df) <- c("Age", "AgeRange")
 
 # checking the first few records of the age_df
-head(age_df)
-
+#head(age_df)
+age_df
 # checking the structure of the age_df
 str(age_df)
 ```
 
 ```{r occupation_dataframe}
 # creating the occupation ref dataframe
-occup_df <- read.csv("occupation.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("numeric","character"))
+occup_df <- read.csv("occupation.dat", sep = ":", header = FALSE, stringsAsFactors = FALSE, colClasses = c("factor","character"))
 
 # assigning correct header names from the read_me file
 names(occup_df) <- c("OccupationID", "Occupation")
 
 # checking the first few records of the occup_df
-head(occup_df)
-
+#head(occup_df)
+occup_df
 # checking the structure of the occup_df
 str(occup_df)
 ```
@@ -420,6 +422,7 @@ usrs_df <- left_join(usrs_df, age_df, by = "Age")
 # joining the occup_df to the usrs_df by OccupationID
 usrs_df <- left_join(usrs_df, occup_df, by = "OccupationID")
 
+check_df(usrs_df,0)
 # checking the structure of the usrs_df
 str(usrs_df)
 
@@ -427,7 +430,7 @@ str(usrs_df)
 usrs_df <- usrs_df[, c("UserID", "Age", "AgeRange", "Gender", "OccupationID", "Occupation", "ZipCode")]
 
 # checking the first few records of the usrs_df
-head(usrs_df)
+head(usrs_df,20)
 ```
 
 The usrs_df is now complete with all the correct variables in place.
@@ -463,7 +466,7 @@ check_df(ratings_df, 0)
 Addressing point 3 above:
 ```{r ratings_dataframe_mod2}
 # Changing all columns to numeric data type so that date and time operations can be performed on the timestamp
-ratings_df[, colnames(ratings_df)] <- lapply(ratings_df[, colnames(ratings_df)], as.numeric)
+ratings_df$TimeStamp <- as.numeric(ratings_df$TimeStamp)
 
 # Now epoch or UNIX time is given in the TimeStamp - so extracting the date and time from it
 ratings_df$Date <- strftime(as.POSIXct(ratings_df$TimeStamp, origin = "1970-01-01", tz =""),"%Y-%m-%d")
@@ -517,7 +520,7 @@ The utility function shows that there are 0 NAs in the full_mov_df dataframe.
 Finally, from the sturcture output of the complete full_mov_df dataframe, it is apparent that many of the applicable variables will need to be converted to factors. Hence, this is taken care of below:
 
 ```{r full_mov_df_mod1}
-full_mov_df$Rating <- as.factor(full_mov_df$Rating)
+#full_mov_df$Rating <- as.factor(full_mov_df$Rating)
 full_mov_df$AgeRange <- as.factor(full_mov_df$AgeRange)
 full_mov_df$Gender <- as.factor(full_mov_df$Gender)
 full_mov_df$Occupation <- as.factor(full_mov_df$Occupation)
@@ -525,7 +528,7 @@ full_mov_df$ZipCode <- as.factor(full_mov_df$ZipCode)
 full_mov_df$MovieTitle <- as.factor(full_mov_df$MovieTitle)
 full_mov_df$ReleaseYear <- as.factor(full_mov_df$ReleaseYear)
 # converting generes to factors which are from col 15 to 32 in the full_mov_df
-full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.factor)
+#full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.factor)
 
 # Lastly, checking the structure of the final full_mov_df dataframe
 str(full_mov_df)
@@ -536,14 +539,101 @@ str(full_mov_df)
 The next step would be to do some EDA to find out about:
 
   1. How the data is distributed out in the dataframe (a plot of count vs generes)
-  2. Gender vs Age distributions
-  3. Occupation distributions
+```{r genere_dist}
+# converting the generes back to numeric to allow for counting
+#full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.numeric)
+# creating a genere distribution dataframe
+genere_dist <- full_mov_df %>% 
+  select(Action:Western) %>% 
+  summarise_each(funs(sum)) %>% 
+  gather(Genere, Freq, Action:Western) %>%
+  arrange(desc(Freq))
+```
+
+Plotting the genere distribution of the dataset
+```{r echo = FALSE, genere_dist_plot}
+ggplot(aes(x=reorder(Genere, -Freq), y=Freq), data = genere_dist) + 
+  geom_bar(stat = "identity") +
+  xlab("Generes") +
+  ylab("Count") +
+  scale_y_continuous(labels = comma)
+```
+
+```{r echo = FALSE, genere_dist_plot2}
+# to show %
+ggplot(aes(x=reorder(Genere, -Freq), y=(Freq/sum(Freq))), data = genere_dist) + 
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = percent) +
+  xlab("Generes") +
+  ylab("Percent")
+```
+
+The dataset shows a Right skewed distribution, where the Comedy and Drama generes make up a noticable part of the full_mov_df (approx. 35%), followed by Action and Thriller. The other generes appear grouped with similar number of occurances in the dataset (i.e. Scifi, Romance and Adventure seem to have between 5%-7% share each, Crime, Horror, Children's and War seem to be between 2.5%-3.5%, and so forth) 
+
+  2. Gender vs Age distributions - It would be interesting to see how the users are distirbuted across the genders 
+```{r gender_age_dist}
+ggplot(full_mov_df, aes(AgeRange, fill = Gender)) + geom_bar() + scale_y_continuous(labels = comma)
+```
+
+It appears that there is a significantly larger portion of male users in the full_mov_df than female users. It appears that the agerange from 18 to 44 makes up the most of the watched movies in the dataset, with 25-34 years of age leading the group. It would make sense as this is the age group where most of us are working in full swing and perhaps carving paths for raising families. As the users grow older, the number of movies watched decreases significantly; again, a not so surprising fact, that people would be busy raising families and enjoying time performaing other activities (outdoor perhaps). 
+
+
+  3. Occupation Gender and Age distributions together - The idea here is to see if there is any relationship between age, gender and occupations. Perhaps, a particular occupation would house a greater agerange than others, and that in turn might prefer to watch a particular kind of genere.
+  
+```{r occup_gender_age_dist}
+ggplot(full_mov_df, aes(AgeRange, fill = Gender)) + facet_wrap(~Occupation, nrow = 7, ncol = 3) + geom_bar() + scale_y_continuous(labels = comma)
+```
+
+A few occupations stand out where quite a lot of movies have been watched. A large number of them fall under college/grad student occupation, followed by other or not specified, executive/managerial, technician/engineer and the rest are relatively small proportion. As indicated above, the popular age groups obtained above seem to hold. It makes sense that 18-24 is the range where most people go to college. The gender disribution does not change from before either.
+
   4. Trends:
   
+      * Age, Gender, Occupation vs Generes - to find out a little bit about users' and if a particular agerange has preference on particular generes
+```{r age_gender_occup_genere_dist}
+age_gndr_occp_genre_dist <- full_mov_df %>%
+  select(AgeRange, Gender, Occupation, Action:Western) %>% 
+  group_by(AgeRange, Gender, Occupation) %>% 
+  summarise_each(funs(sum), Action:Western) %>% 
+  gather(Genere, Freq, Action:Western, -c(AgeRange, Gender, Occupation))
+```
+
+```{r age_gender_genere_dist_plot}
+ggplot(age_gndr_occp_genre_dist, aes(x=reorder(Genere, -Freq), y=Freq, fill= AgeRange)) + geom_bar(stat = "identity") + scale_y_continuous(labels = comma)
+```
+
+The output does not say much except that 25-34 agerange makes up the largest chunk of the distribution across all the generes. This was also noticed in the above plots.
+
+
     * Generes over Release years - to find out if there is there a change/popularity of Generes over time
-    * Age, Gender, Occupation vs Generes - to find out a little bit about users' and if there is a relationship with Generes
-    * Similar to above but against Release years - to find out whether users' preferences on Generes have changed over time 
+    
+```{r genere_relyear_dist}
+genere_relyear_dist <- full_mov_df %>% select(ReleaseYear, Action:Western) %>% group_by(ReleaseYear) %>% summarise_each(funs(sum), Action:Western)  %>% gather(Genere, Freq, Action:Western, -ReleaseYear)
+
+# plotting the distribution
+genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
+ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, nrow = 7, ncol=3)
+```
+
+It looks like there is not much sensible data present before 1970, to be able to really observe a trend if there way any. 
+
+Refining the plot and taking years from 1970 onwards:
+```{r genere_relyear_dist_mod}
+genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
+ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, ncol=2)
+```
+
+Here is seems that Drama, Comedy, Action, Thriller and Romance are the generes that gained in popularity over time. The rest of the generes did not exhibit this level of increase.
+
+#### Note to Amit: We can talk about these charts on Wednesday and whether it makes sense to do any feature engineering.. I am not sure when it comes to collaborative filtering..
+***
+***
+    
+    * Similar to above but against Release years - to find out whether users' preferences on Generes have changed over time
+
+
+    
     * Similar to above but against Ranking - to find out the ranking behaviour of users
+
 
 There might be some more questions as I go through the above.
 
