@@ -4,7 +4,7 @@ August 11, 2016
 ***
 ### OBJECTIVE/SYNOPSIS
 
-The objective of this project is create a movies recommender system which utilizes the collaborative filtering methodology to recommend atlest top 5 movies to about 20 target users. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
+The objective of this project is create a movies recommender system which utilizes the collaborative filtering methodology to recommend atlest top 3-5 movies to a target user. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
 
 The dataset that was chosen is from the "MovieLens 1M Dataset" section and the compressed file name was: "ml-1m.zip".
 
@@ -126,7 +126,6 @@ suppressMessages(library(tidyr))
 suppressMessages(library(reshape2))
 suppressMessages(library(splitstackshape))
 suppressMessages(library(scales))
-suppressMessages(library(recommenderlab))
 ```
 
 
@@ -1137,15 +1136,80 @@ The utility function shows that there are 0 NAs in the full_mov_df dataframe.
 
 
 
+```r
+# Checking for the number of unique movie titles
+#unique(full_mov_df$MovieTitle)
+
+# changing all NAs to -1
+#full_mov_df[is.na(full_mov_df)] <- -1
+
+# running the utility function again to do the check for NAs
+#check_df(full_mov_df, 2)
+```
+
+Finally, from the sturcture output of the complete full_mov_df dataframe, it is apparent that many of the applicable variables will need to be converted to factors. Hence, this is taken care of below:
+
+
+```r
+#full_mov_df$Rating <- as.factor(full_mov_df$Rating)
+full_mov_df$AgeRange <- as.factor(full_mov_df$AgeRange)
+full_mov_df$Gender <- as.factor(full_mov_df$Gender)
+full_mov_df$Occupation <- as.factor(full_mov_df$Occupation)
+full_mov_df$ZipCode <- as.factor(full_mov_df$ZipCode)
+full_mov_df$MovieTitle <- as.factor(full_mov_df$MovieTitle)
+full_mov_df$ReleaseYear <- as.factor(full_mov_df$ReleaseYear)
+# converting generes to factors which are from col 15 to 32 in the full_mov_df
+#full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.factor)
+
+# Lastly, checking the structure of the final full_mov_df dataframe
+str(full_mov_df)
+```
+
+```
+## 'data.frame':	1000209 obs. of  32 variables:
+##  $ UserID      : Factor w/ 6040 levels "1","10","100",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ MovieID     : chr  "1193" "661" "914" "3408" ...
+##  $ Rating      : Factor w/ 5 levels "1","2","3","4",..: 5 3 3 4 5 3 5 5 4 4 ...
+##  $ TimeStamp   : num  423354 423369 423366 423352 426162 ...
+##  $ Date        : chr  "1970-01-05" "1970-01-05" "1970-01-05" "1970-01-05" ...
+##  $ Time        : chr  "16:35:54" "16:36:09" "16:36:06" "16:35:52" ...
+##  $ Age         : Factor w/ 7 levels "1","18","25",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ AgeRange    : Factor w/ 7 levels "  18-24","  25-34",..: 7 7 7 7 7 7 7 7 7 7 ...
+##  $ Gender      : Factor w/ 2 levels "F","M": 1 1 1 1 1 1 1 1 1 1 ...
+##  $ OccupationID: Factor w/ 21 levels "0","1","10","11",..: 3 3 3 3 3 3 3 3 3 3 ...
+##  $ Occupation  : Factor w/ 21 levels "  academic/educator",..: 10 10 10 10 10 10 10 10 10 10 ...
+##  $ ZipCode     : Factor w/ 3402 levels "00231","00606",..: 1575 1575 1575 1575 1575 1575 1575 1575 1575 1575 ...
+##  $ MovieTitle  : Factor w/ 3664 levels "'burbs, The",..: 2424 1723 2264 1049 556 2624 345 670 3021 3617 ...
+##  $ ReleaseYear : Factor w/ 81 levels "1919","1920",..: 56 77 45 81 79 68 40 64 18 20 ...
+##  $ Action      : num  0 0 0 0 0 1 1 0 0 0 ...
+##  $ Adventure   : num  0 0 0 0 0 1 1 0 0 1 ...
+##  $ Animation   : num  0 1 0 0 1 0 0 0 1 0 ...
+##  $ Children's  : num  0 1 0 0 1 0 0 0 1 1 ...
+##  $ Comedy      : num  0 0 0 0 1 1 0 1 0 0 ...
+##  $ Crime       : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Documentary : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Drama       : num  1 0 0 1 0 0 1 1 0 1 ...
+##  $ Fantasy     : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Film-Noir   : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Horror      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Musical     : num  0 1 1 0 0 0 0 0 1 1 ...
+##  $ Mystery     : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Romance     : num  0 0 1 0 0 1 0 0 0 0 ...
+##  $ Sci-Fi      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Thriller    : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ War         : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Western     : num  0 0 0 0 0 0 0 0 0 0 ...
+```
 
 ***
-### EXPLORATORY DATA ANALYSIS
 
-The next step is to do some EDA on the full_mov_df dataset. The idea here is to see how the data is distributed and if any insights can be gained into user behaviours. However, since the overall project objective is to look at the user ratings for the movies and recommend top movies, all the other variables in the full_mov_df dataset will not be used.
+The next step would be to do some EDA to find out about:
 
   1. How the data is distributed out in the dataframe (a plot of count vs generes)
 
 ```r
+# converting the generes back to numeric to allow for counting
+#full_mov_df[15:32] <- lapply(full_mov_df[15:32], as.numeric)
 # creating a genere distribution dataframe
 genere_dist <- full_mov_df %>% 
   select(Action:Western) %>% 
@@ -1232,133 +1296,23 @@ ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)
 Here is seems that Drama, Comedy, Action, Thriller and Romance are the generes that gained in popularity over time. The rest of the generes did not exhibit this level of increase.
 
 #### Note to Amit: We can talk about these charts on Wednesday and whether it makes sense to do any feature engineering.. I am not sure when it comes to collaborative filtering..
-
 ***
-The recommenderlab package from CRAN (hitherto referred to as "RLp"), will be used going forward, to:
-  1. look at the rating behaviours of users through preliminary EDA
-  2. pick 2000 users and build a popularity based model to recommend top 5 most popular movies for 20 active users
-  3. come up with the top 5 movies for about 20 users. There are some assumptions that have been taken into account
-
-Addressing point 1 above:
+***
+    
+    * Similar to above but against Release years - to find out whether users' preferences on Generes have changed over time
 
 
-```r
-# Creating the rating df consisting of UserID, MovieID and Rating columns
-usr_mov_rtg_df <- full_mov_df %>% select(UserID, MovieID, Rating)
-# checking structure
-str(usr_mov_rtg_df)
-```
-
-```
-## 'data.frame':	1000209 obs. of  3 variables:
-##  $ UserID : Factor w/ 6040 levels "1","10","100",..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ MovieID: chr  "1193" "661" "914" "3408" ...
-##  $ Rating : Factor w/ 5 levels "1","2","3","4",..: 5 3 3 4 5 3 5 5 4 4 ...
-```
-
-In order to use the RLp functionality, the above usr_mov_rtg_df dataframe first needs to be coerced to a "realRatingMatrix". 
-
-```r
-rating_rRM <- as(usr_mov_rtg_df,"realRatingMatrix")
-rating_rRM
-```
-
-```
-## 6040 x 3706 rating matrix of class 'realRatingMatrix' with 1000209 ratings.
-```
-
-```r
-# Looking at the format of rating_rRM
-head(as(rating_rRM, "data.frame"))
-```
-
-```
-##       user item rating
-## 1        1    1      5
-## 7572     1 1022      5
-## 9141     1 1028      5
-## 10152    1 1029      5
-## 12376    1 1035      5
-## 35669    1 1097      4
-```
-
-There are 6040 users who have rated 3706 movies and contains 1,000,209 ratings (as orginally seen in the full_mov_df). Also note, the RLp automatically creates the user, item and rating columns.
-
-Looking at the rating distribution of the dataset:
-
-```r
-hist(getRatings(rating_rRM), breaks = 5, xlab = "Rating", main = "Histogram of Ratings and their Occurances")
-```
-
-![](Movies_Recommender_System_files/figure-html/rating_dist-1.png)\
-
-The histogram shows that users might be more biased towards giving ratings between 3 and 4 and not so inclined towards a rating of 1. 5 is also not given as frequently but is more often than 1.
-
-Normalizing the distribution to become more 0 centred:
-
-```r
-hist(getRatings(normalize(rating_rRM)), breaks = 100, xlab = "Normalized Rating", main = "Histogram of Normalized Ratings")
-```
-
-![](Movies_Recommender_System_files/figure-html/normalization-1.png)\
-
-Here, there the distribution is closer to that of a normal one (although it seems more right skewed towards the positive side), with interestingly high peaks occuring between 0 and 1.
-
-Looking at the distribution of how many movies each user has rated:
-
-```r
-hist(rowCounts(rating_rRM), breaks = 100, xlim = c(0,1000), xlab = "Number of Movies Rated per User", ylab = "Number of Users", main = "Distribution of Number of Movies Rated by each User")
-```
-
-![](Movies_Recommender_System_files/figure-html/ratings_of_usrs-1.png)\
-The plot shows that majority of the users lie in the region where they have rated atleast 20 movies (known fact from the MovieLens dataset), and as the number of movies increase, the users count falls. This makes sense otherwise we would all be glued to the screens watching and rating movies all day long. 
+    
+    * Similar to above but against Ranking - to find out the ranking behaviour of users
 
 
-```r
-hist(rowMeans(rating_rRM), breaks = 100, xlab = "Average Rating per User", main = "Distribution of Average Movie Rating by each User")
-```
-
-![](Movies_Recommender_System_files/figure-html/ratings_of_usrs_mod-1.png)\
-This again shows that majority of the users have a tendency to rate between 3 and 4, with steep decline when rating 5. The range from 1 to 3 is the lowest, perhaps meaning that users only prefer to watch movies that are rated 3 and above.
-
-Finally, looking at the mean rating per movie:
-
-```r
-hist(colMeans(rating_rRM), breaks = 50, xlab = "Average Rating per Movie", main = "Distribution of Average Rating per Movie")
-```
-
-![](Movies_Recommender_System_files/figure-html/mean_rating_per_mov-1.png)\
-This again shows that most of the movies lie between the rating of 3 and 4, with a few exceptions at 1 and 2.
+There might be some more questions as I go through the above.
 
 ***
 
-### Building the CF Model
+### Collaborative Filtering model methodology
 
-
-
-head(as(r, "data.frame"))
-set.seed(1234)
-r_s <- sample(r, 3000)
-r_s
-hist(getRatings(r_s), breaks = 5)
-hist(getRatings(normalize(r_s)), breaks = 100)
-hist(getRatings(normalize(r_s, method = "Z-score")), breaks = 100)
-hist(rowCounts(r_s),breaks = 100)
-hist(colMeans(r_s),breaks = 20)
-
-
-r_rec <- Recommender(r[1:6000], method = "POPULAR")
-r_rec
-recom_p <- predict(r_rec, r[6001:6005], n=5)
-as(recom_p,"list")
-
-recom_r <- predict(r_rec, r[6001:6005], type="ratings")
-as(recom_r, "matrix")
-
-recom_rf <- predict(r_rec, r[6001:6005], type="ratingMatrix")
-as(recom_rf, "matrix")
-
-
+  1. Extract: Users vs MovieTitles vs Ratings dataframe
   2. Split the dataframe into Training, CV and Test datasets
     * Ensure that the data is randomly selected and is normally distributed in each of the datasets
   3. Run a cosine similarity algorithm to find similar users and recommend movies that they have not yet seen
