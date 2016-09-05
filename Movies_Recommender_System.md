@@ -1,16 +1,20 @@
 # Movies_Recommender_System: Capstone Project
 Manu Kushwaha  
 August 11, 2016  
+
+
 ***
 ### OBJECTIVE/SYNOPSIS
 
-The objective of this project is create a movies recommender system which utilizes the collaborative filtering methodology to recommend atlest top 5 movies to about 20 target users. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
+The objective of this project is create a movies recommender system using the recommenderlab package (from CRAN), which utilizes the collaborative filtering methodology to recommend atlest top 5 movies to some target users. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
 
 The dataset that was chosen is from the "MovieLens 1M Dataset" section and the compressed file name was: "ml-1m.zip".
 
-The structure of the Movie data is such that it does not provide any Movie content information except for Generes, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology in its ture form cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
+The structure of the Movie data is such that it does not provide any Movie content information except for Generes, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology in its true form cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
 
-Based on this limitation, the approach is then to utlize the user based collaborative filtering method, which finds similarity between ratings of multiple users who are the closest to the target user, and then provide movies' recommendations to this user which they have not yet rated or seen.
+Based on this limitation, the approach is then to utlize the user based collaborative filtering method, which serves 2 main purposes:
+  1. finds similarity between ratings of multiple users who are the closest to the target user and predicts ratings for the movies/items that the target user has not rated yet 
+  2. provides a list of top-N movies/items recommendations to this user (which they have not yet rated or seen)
 
 ***
 ### ABOUT THE FILES IN THE "MOVIELENS 1M DATASET""
@@ -176,12 +180,8 @@ head(mov_lines)
 ```
 
 ```
-## [1] "1::Toy Story (1995)::Animation|Children's|Comedy"
-## [2] "2::Jumanji (1995)::Adventure|Children's|Fantasy" 
-## [3] "3::Grumpier Old Men (1995)::Comedy|Romance"      
-## [4] "4::Waiting to Exhale (1995)::Comedy|Drama"       
-## [5] "5::Father of the Bride Part II (1995)::Comedy"   
-## [6] "6::Heat (1995)::Action|Crime|Thriller"
+## [1] "1::Toy Story (1995)::Animation|Children's|Comedy" "2::Jumanji (1995)::Adventure|Children's|Fantasy"  "3::Grumpier Old Men (1995)::Comedy|Romance"      
+## [4] "4::Waiting to Exhale (1995)::Comedy|Drama"        "5::Father of the Bride Part II (1995)::Comedy"    "6::Heat (1995)::Action|Crime|Thriller"
 ```
 
 ##### Observations:
@@ -200,8 +200,7 @@ head(usrs_lines)
 ```
 
 ```
-## [1] "1::F::1::10::48067"  "2::M::56::16::70072" "3::M::25::15::55117"
-## [4] "4::M::45::7::02460"  "5::M::25::20::55455" "6::F::50::9::55117"
+## [1] "1::F::1::10::48067"  "2::M::56::16::70072" "3::M::25::15::55117" "4::M::45::7::02460"  "5::M::25::20::55455" "6::F::50::9::55117"
 ```
 
 ##### Observations:
@@ -219,8 +218,7 @@ head(ratings_lines)
 ```
 
 ```
-## [1] "1::1193::5::978300760" "1::661::3::978302109"  "1::914::3::978301968" 
-## [4] "1::3408::4::978300275" "1::2355::5::978824291" "1::1197::3::978302268"
+## [1] "1::1193::5::978300760" "1::661::3::978302109"  "1::914::3::978301968"  "1::3408::4::978300275" "1::2355::5::978824291" "1::1197::3::978302268"
 ```
 
 ##### Observations:
@@ -345,20 +343,13 @@ head(mov_df)
 ```
 
 ```
-##   MovieID                  MovieTitle                       Genere
-## 1       1                   Toy Story  Animation|Children's|Comedy
-## 2       2                     Jumanji Adventure|Children's|Fantasy
-## 3       3            Grumpier Old Men               Comedy|Romance
-## 4       4           Waiting to Exhale                 Comedy|Drama
-## 5       5 Father of the Bride Part II                       Comedy
-## 6       6                        Heat        Action|Crime|Thriller
-##   ReleaseYear
-## 1        1995
-## 2        1995
-## 3        1995
-## 4        1995
-## 5        1995
-## 6        1995
+##   MovieID                  MovieTitle                       Genere ReleaseYear
+## 1       1                   Toy Story  Animation|Children's|Comedy        1995
+## 2       2                     Jumanji Adventure|Children's|Fantasy        1995
+## 3       3            Grumpier Old Men               Comedy|Romance        1995
+## 4       4           Waiting to Exhale                 Comedy|Drama        1995
+## 5       5 Father of the Bride Part II                       Comedy        1995
+## 6       6                        Heat        Action|Crime|Thriller        1995
 ```
 
 Addressing Point 4 above:
@@ -372,20 +363,13 @@ head(mov_df)
 ```
 
 ```
-##    MovieID                  MovieTitle ReleaseYear  Genere_1   Genere_2
-## 1:       1                   Toy Story        1995 Animation Children's
-## 2:       2                     Jumanji        1995 Adventure Children's
-## 3:       3            Grumpier Old Men        1995    Comedy    Romance
-## 4:       4           Waiting to Exhale        1995    Comedy      Drama
-## 5:       5 Father of the Bride Part II        1995    Comedy         NA
-## 6:       6                        Heat        1995    Action      Crime
-##    Genere_3 Genere_4 Genere_5 Genere_6
-## 1:   Comedy       NA       NA       NA
-## 2:  Fantasy       NA       NA       NA
-## 3:       NA       NA       NA       NA
-## 4:       NA       NA       NA       NA
-## 5:       NA       NA       NA       NA
-## 6: Thriller       NA       NA       NA
+##    MovieID                  MovieTitle ReleaseYear  Genere_1   Genere_2 Genere_3 Genere_4 Genere_5 Genere_6
+## 1:       1                   Toy Story        1995 Animation Children's   Comedy       NA       NA       NA
+## 2:       2                     Jumanji        1995 Adventure Children's  Fantasy       NA       NA       NA
+## 3:       3            Grumpier Old Men        1995    Comedy    Romance       NA       NA       NA       NA
+## 4:       4           Waiting to Exhale        1995    Comedy      Drama       NA       NA       NA       NA
+## 5:       5 Father of the Bride Part II        1995    Comedy         NA       NA       NA       NA       NA
+## 6:       6                        Heat        1995    Action      Crime Thriller       NA       NA       NA
 ```
 
 ```r
@@ -393,20 +377,13 @@ tail(mov_df)
 ```
 
 ```
-##    MovieID          MovieTitle ReleaseYear Genere_1 Genere_2 Genere_3
-## 1:    3947          Get Carter        1971 Thriller       NA       NA
-## 2:    3948    Meet the Parents        2000   Comedy       NA       NA
-## 3:    3949 Requiem for a Dream        2000    Drama       NA       NA
-## 4:    3950           Tigerland        2000    Drama       NA       NA
-## 5:    3951    Two Family House        2000    Drama       NA       NA
-## 6:    3952      Contender, The        2000    Drama Thriller       NA
-##    Genere_4 Genere_5 Genere_6
-## 1:       NA       NA       NA
-## 2:       NA       NA       NA
-## 3:       NA       NA       NA
-## 4:       NA       NA       NA
-## 5:       NA       NA       NA
-## 6:       NA       NA       NA
+##    MovieID          MovieTitle ReleaseYear Genere_1 Genere_2 Genere_3 Genere_4 Genere_5 Genere_6
+## 1:    3947          Get Carter        1971 Thriller       NA       NA       NA       NA       NA
+## 2:    3948    Meet the Parents        2000   Comedy       NA       NA       NA       NA       NA
+## 3:    3949 Requiem for a Dream        2000    Drama       NA       NA       NA       NA       NA
+## 4:    3950           Tigerland        2000    Drama       NA       NA       NA       NA       NA
+## 5:    3951    Two Family House        2000    Drama       NA       NA       NA       NA       NA
+## 6:    3952      Contender, The        2000    Drama Thriller       NA       NA       NA       NA
 ```
 
 ```r
@@ -418,18 +395,14 @@ check_df(mov_df,0)
 ```
 ## [1] "Checking for the total number of records in the dataframe to ensure completeness:"
 ## 
-##     MovieID  MovieTitle ReleaseYear    Genere_1    Genere_2    Genere_3 
-##        3883        3883        3883        3883        3883        3883 
-##    Genere_4    Genere_5    Genere_6 
-##        3883        3883        3883 
+##     MovieID  MovieTitle ReleaseYear    Genere_1    Genere_2    Genere_3    Genere_4    Genere_5    Genere_6 
+##        3883        3883        3883        3883        3883        3883        3883        3883        3883 
 ## 
 ## 
 ## [1] "Checking for the total number of missing values (NA) in the dataframe if any:"
 ## 
-##     MovieID  MovieTitle ReleaseYear    Genere_1    Genere_2    Genere_3 
-##           0           0           0           0        2025        3347 
-##    Genere_4    Genere_5    Genere_6 
-##        3768        3868        3882
+##     MovieID  MovieTitle ReleaseYear    Genere_1    Genere_2    Genere_3    Genere_4    Genere_5    Genere_6 
+##           0           0           0           0        2025        3347        3768        3868        3882
 ```
 
 From the above 2 outputs, it can be seen that although Generes have been split into 6 different categories, they are not unique. Hence, to fix this:
@@ -492,26 +465,18 @@ check_df(mov_df, 0)
 ```
 ## [1] "Checking for the total number of records in the dataframe to ensure completeness:"
 ## 
-##     MovieID  MovieTitle ReleaseYear      Action   Adventure   Animation 
-##        3883        3883        3883        3883        3883        3883 
-##  Children's      Comedy       Crime Documentary       Drama     Fantasy 
-##        3883        3883        3883        3883        3883        3883 
-##   Film-Noir      Horror     Musical     Mystery     Romance      Sci-Fi 
-##        3883        3883        3883        3883        3883        3883 
-##    Thriller         War     Western 
-##        3883        3883        3883 
+##     MovieID  MovieTitle ReleaseYear      Action   Adventure   Animation  Children's      Comedy       Crime Documentary       Drama     Fantasy   Film-Noir      Horror     Musical     Mystery 
+##        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883        3883 
+##     Romance      Sci-Fi    Thriller         War     Western 
+##        3883        3883        3883        3883        3883 
 ## 
 ## 
 ## [1] "Checking for the total number of missing values (NA) in the dataframe if any:"
 ## 
-##     MovieID  MovieTitle ReleaseYear      Action   Adventure   Animation 
-##           0           0           0        3380        3600        3778 
-##  Children's      Comedy       Crime Documentary       Drama     Fantasy 
-##        3632        2683        3672        3756        2280        3815 
-##   Film-Noir      Horror     Musical     Mystery     Romance      Sci-Fi 
-##        3839        3540        3769        3777        3412        3607 
-##    Thriller         War     Western 
-##        3391        3740        3815
+##     MovieID  MovieTitle ReleaseYear      Action   Adventure   Animation  Children's      Comedy       Crime Documentary       Drama     Fantasy   Film-Noir      Horror     Musical     Mystery 
+##           0           0           0        3380        3600        3778        3632        2683        3672        3756        2280        3815        3839        3540        3769        3777 
+##     Romance      Sci-Fi    Thriller         War     Western 
+##        3412        3607        3391        3740        3815
 ```
 
 ```r
@@ -523,27 +488,13 @@ head(mov_df)
 ```
 
 ```
-##    MovieID                MovieTitle ReleaseYear Action Adventure
-## 1:       1                 Toy Story        1995      0         0
-## 2:      10                 GoldenEye        1995      1         1
-## 3:     100                 City Hall        1996      0         0
-## 4:    1000                   Curdled        1996      0         0
-## 5:    1001 Associate, The (L'Associe        1982      0         0
-## 6:    1002            Ed's Next Move        1996      0         0
-##    Animation Children's Comedy Crime Documentary Drama Fantasy Film-Noir
-## 1:         1          1      1     0           0     0       0         0
-## 2:         0          0      0     0           0     0       0         0
-## 3:         0          0      0     0           0     1       0         0
-## 4:         0          0      0     1           0     0       0         0
-## 5:         0          0      1     0           0     0       0         0
-## 6:         0          0      1     0           0     0       0         0
-##    Horror Musical Mystery Romance Sci-Fi Thriller War Western
-## 1:      0       0       0       0      0        0   0       0
-## 2:      0       0       0       0      0        1   0       0
-## 3:      0       0       0       0      0        1   0       0
-## 4:      0       0       0       0      0        0   0       0
-## 5:      0       0       0       0      0        0   0       0
-## 6:      0       0       0       0      0        0   0       0
+##    MovieID                MovieTitle ReleaseYear Action Adventure Animation Children's Comedy Crime Documentary Drama Fantasy Film-Noir Horror Musical Mystery Romance Sci-Fi Thriller War Western
+## 1:       1                 Toy Story        1995      0         0         1          1      1     0           0     0       0         0      0       0       0       0      0        0   0       0
+## 2:      10                 GoldenEye        1995      1         1         0          0      0     0           0     0       0         0      0       0       0       0      0        1   0       0
+## 3:     100                 City Hall        1996      0         0         0          0      0     0           0     1       0         0      0       0       0       0      0        1   0       0
+## 4:    1000                   Curdled        1996      0         0         0          0      0     1           0     0       0         0      0       0       0       0      0        0   0       0
+## 5:    1001 Associate, The (L'Associe        1982      0         0         0          0      1     0           0     0       0         0      0       0       0       0      0        0   0       0
+## 6:    1002            Ed's Next Move        1996      0         0         0          0      1     0           0     0       0         0      0       0       0       0      0        0   0       0
 ```
 
 ```r
@@ -586,14 +537,10 @@ sapply(mov_df, function(y) sum(length(grep("[^[:alnum:]]", y))))
 ```
 
 ```
-##     MovieID  MovieTitle ReleaseYear      Action   Adventure   Animation 
-##           0        3228           0           0           0           0 
-##  Children's      Comedy       Crime Documentary       Drama     Fantasy 
-##           0           0           0           0           0           0 
-##   Film-Noir      Horror     Musical     Mystery     Romance      Sci-Fi 
-##           0           0           0           0           0           0 
-##    Thriller         War     Western 
-##           0           0           0
+##     MovieID  MovieTitle ReleaseYear      Action   Adventure   Animation  Children's      Comedy       Crime Documentary       Drama     Fantasy   Film-Noir      Horror     Musical     Mystery 
+##           0        3228           0           0           0           0           0           0           0           0           0           0           0           0           0           0 
+##     Romance      Sci-Fi    Thriller         War     Western 
+##           0           0           0           0           0
 ```
 
 As seen here, the Generes are now all numeric in nature rather than factors as originally obtained. They will need to be converted into factors once the full dataframe is created. Also, as expected, the movie title variable contains punctuation characters which is fine.
@@ -667,8 +614,7 @@ head(grep("[^[:alnum:]]", usrs_df$ZipCode, value = TRUE))
 ```
 
 ```
-## [1] "98107-2117" "37919-4204" "55337-4056" "55405-2546" "55103-1006"
-## [6] "52570-9634"
+## [1] "98107-2117" "37919-4204" "55337-4056" "55405-2546" "55103-1006" "52570-9634"
 ```
 
 ```r
@@ -809,18 +755,14 @@ check_df(usrs_df,0)
 ```
 ## [1] "Checking for the total number of records in the dataframe to ensure completeness:"
 ## 
-##       UserID       Gender          Age OccupationID      ZipCode 
-##         6040         6040         6040         6040         6040 
-##     AgeRange   Occupation 
-##         6040         6040 
+##       UserID       Gender          Age OccupationID      ZipCode     AgeRange   Occupation 
+##         6040         6040         6040         6040         6040         6040         6040 
 ## 
 ## 
 ## [1] "Checking for the total number of missing values (NA) in the dataframe if any:"
 ## 
-##       UserID       Gender          Age OccupationID      ZipCode 
-##            0            0            0            0            0 
-##     AgeRange   Occupation 
-##            0            0
+##       UserID       Gender          Age OccupationID      ZipCode     AgeRange   Occupation 
+##            0            0            0            0            0            0            0
 ```
 
 ```r
@@ -848,48 +790,27 @@ head(usrs_df,20)
 ```
 
 ```
-##    UserID Age   AgeRange Gender OccupationID               Occupation
-## 1       1   1   Under 18      F           10             K-12 student
-## 2       2  56        56+      M           16            self-employed
-## 3       3  25      25-34      M           15                scientist
-## 4       4  45      45-49      M            7     executive/managerial
-## 5       5  25      25-34      M           20                   writer
-## 6       6  50      50-55      F            9                homemaker
-## 7       7  35      35-44      M            1        academic/educator
-## 8       8  25      25-34      M           12               programmer
-## 9       9  25      25-34      M           17      technician/engineer
-## 10     10  35      35-44      F            1        academic/educator
-## 11     11  25      25-34      F            1        academic/educator
-## 12     12  25      25-34      M           12               programmer
-## 13     13  45      45-49      M            1        academic/educator
-## 14     14  35      35-44      M            0   other or not specified
-## 15     15  25      25-34      M            7     executive/managerial
-## 16     16  35      35-44      F            0   other or not specified
-## 17     17  50      50-55      M            1        academic/educator
-## 18     18  18      18-24      F            3           clerical/admin
-## 19     19   1   Under 18      M           10             K-12 student
-## 20     20  25      25-34      M           14          sales/marketing
-##    ZipCode
-## 1    48067
-## 2    70072
-## 3    55117
-## 4    02460
-## 5    55455
-## 6    55117
-## 7    06810
-## 8    11413
-## 9    61614
-## 10   95370
-## 11   04093
-## 12   32793
-## 13   93304
-## 14   60126
-## 15   22903
-## 16   20670
-## 17   95350
-## 18   95825
-## 19   48073
-## 20   55113
+##    UserID Age   AgeRange Gender OccupationID               Occupation ZipCode
+## 1       1   1   Under 18      F           10             K-12 student   48067
+## 2       2  56        56+      M           16            self-employed   70072
+## 3       3  25      25-34      M           15                scientist   55117
+## 4       4  45      45-49      M            7     executive/managerial   02460
+## 5       5  25      25-34      M           20                   writer   55455
+## 6       6  50      50-55      F            9                homemaker   55117
+## 7       7  35      35-44      M            1        academic/educator   06810
+## 8       8  25      25-34      M           12               programmer   11413
+## 9       9  25      25-34      M           17      technician/engineer   61614
+## 10     10  35      35-44      F            1        academic/educator   95370
+## 11     11  25      25-34      F            1        academic/educator   04093
+## 12     12  25      25-34      M           12               programmer   32793
+## 13     13  45      45-49      M            1        academic/educator   93304
+## 14     14  35      35-44      M            0   other or not specified   60126
+## 15     15  25      25-34      M            7     executive/managerial   22903
+## 16     16  35      35-44      F            0   other or not specified   20670
+## 17     17  50      50-55      M            1        academic/educator   95350
+## 18     18  18      18-24      F            3           clerical/admin   95825
+## 19     19   1   Under 18      M           10             K-12 student   48073
+## 20     20  25      25-34      M           14          sales/marketing   55113
 ```
 
 The usrs_df is now complete with all the correct variables in place.
@@ -1003,8 +924,7 @@ full_mov_df <- left_join(full_mov_df, mov_df, by = "MovieID")
 ```
 
 ```
-## Warning in left_join_impl(x, y, by$x, by$y): joining factors with different
-## levels, coercing to character vector
+## Warning in left_join_impl(x, y, by$x, by$y): joining factors with different levels, coercing to character vector
 ```
 
 ```r
@@ -1013,41 +933,20 @@ head(full_mov_df)
 ```
 
 ```
-##   UserID MovieID Rating TimeStamp       Date     Time Age   AgeRange
-## 1      1    1193      5    423354 1970-01-05 16:35:54   1   Under 18
-## 2      1     661      3    423369 1970-01-05 16:36:09   1   Under 18
-## 3      1     914      3    423366 1970-01-05 16:36:06   1   Under 18
-## 4      1    3408      4    423352 1970-01-05 16:35:52   1   Under 18
-## 5      1    2355      5    426162 1970-01-05 17:22:42   1   Under 18
-## 6      1    1197      3    423376 1970-01-05 16:36:16   1   Under 18
-##   Gender OccupationID     Occupation ZipCode
-## 1      F           10   K-12 student   48067
-## 2      F           10   K-12 student   48067
-## 3      F           10   K-12 student   48067
-## 4      F           10   K-12 student   48067
-## 5      F           10   K-12 student   48067
-## 6      F           10   K-12 student   48067
-##                        MovieTitle ReleaseYear Action Adventure Animation
-## 1 One Flew Over the Cuckoo's Nest        1975      0         0         0
-## 2       James and the Giant Peach        1996      0         0         1
-## 3                    My Fair Lady        1964      0         0         0
-## 4                 Erin Brockovich        2000      0         0         0
-## 5                   Bug's Life, A        1998      0         0         1
-## 6             Princess Bride, The        1987      1         1         0
-##   Children's Comedy Crime Documentary Drama Fantasy Film-Noir Horror
-## 1          0      0     0           0     1       0         0      0
-## 2          1      0     0           0     0       0         0      0
-## 3          0      0     0           0     0       0         0      0
-## 4          0      0     0           0     1       0         0      0
-## 5          1      1     0           0     0       0         0      0
-## 6          0      1     0           0     0       0         0      0
-##   Musical Mystery Romance Sci-Fi Thriller War Western
-## 1       0       0       0      0        0   0       0
-## 2       1       0       0      0        0   0       0
-## 3       1       0       1      0        0   0       0
-## 4       0       0       0      0        0   0       0
-## 5       0       0       0      0        0   0       0
-## 6       0       0       1      0        0   0       0
+##   UserID MovieID Rating TimeStamp       Date     Time Age   AgeRange Gender OccupationID     Occupation ZipCode                      MovieTitle ReleaseYear Action Adventure Animation Children's
+## 1      1    1193      5    423354 1970-01-05 16:35:54   1   Under 18      F           10   K-12 student   48067 One Flew Over the Cuckoo's Nest        1975      0         0         0          0
+## 2      1     661      3    423369 1970-01-05 16:36:09   1   Under 18      F           10   K-12 student   48067       James and the Giant Peach        1996      0         0         1          1
+## 3      1     914      3    423366 1970-01-05 16:36:06   1   Under 18      F           10   K-12 student   48067                    My Fair Lady        1964      0         0         0          0
+## 4      1    3408      4    423352 1970-01-05 16:35:52   1   Under 18      F           10   K-12 student   48067                 Erin Brockovich        2000      0         0         0          0
+## 5      1    2355      5    426162 1970-01-05 17:22:42   1   Under 18      F           10   K-12 student   48067                   Bug's Life, A        1998      0         0         1          1
+## 6      1    1197      3    423376 1970-01-05 16:36:16   1   Under 18      F           10   K-12 student   48067             Princess Bride, The        1987      1         1         0          0
+##   Comedy Crime Documentary Drama Fantasy Film-Noir Horror Musical Mystery Romance Sci-Fi Thriller War Western
+## 1      0     0           0     1       0         0      0       0       0       0      0        0   0       0
+## 2      0     0           0     0       0         0      0       1       0       0      0        0   0       0
+## 3      0     0           0     0       0         0      0       1       0       1      0        0   0       0
+## 4      0     0           0     1       0         0      0       0       0       0      0        0   0       0
+## 5      1     0           0     0       0         0      0       0       0       0      0        0   0       0
+## 6      1     0           0     0       0         0      0       0       0       1      0        0   0       0
 ```
 
 ```r
@@ -1058,36 +957,20 @@ check_df(full_mov_df, 0)
 ```
 ## [1] "Checking for the total number of records in the dataframe to ensure completeness:"
 ## 
-##       UserID      MovieID       Rating    TimeStamp         Date 
-##      1000209      1000209      1000209      1000209      1000209 
-##         Time          Age     AgeRange       Gender OccupationID 
-##      1000209      1000209      1000209      1000209      1000209 
-##   Occupation      ZipCode   MovieTitle  ReleaseYear       Action 
-##      1000209      1000209      1000209      1000209      1000209 
-##    Adventure    Animation   Children's       Comedy        Crime 
-##      1000209      1000209      1000209      1000209      1000209 
-##  Documentary        Drama      Fantasy    Film-Noir       Horror 
-##      1000209      1000209      1000209      1000209      1000209 
-##      Musical      Mystery      Romance       Sci-Fi     Thriller 
-##      1000209      1000209      1000209      1000209      1000209 
+##       UserID      MovieID       Rating    TimeStamp         Date         Time          Age     AgeRange       Gender OccupationID   Occupation      ZipCode   MovieTitle  ReleaseYear       Action 
+##      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209 
+##    Adventure    Animation   Children's       Comedy        Crime  Documentary        Drama      Fantasy    Film-Noir       Horror      Musical      Mystery      Romance       Sci-Fi     Thriller 
+##      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209      1000209 
 ##          War      Western 
 ##      1000209      1000209 
 ## 
 ## 
 ## [1] "Checking for the total number of missing values (NA) in the dataframe if any:"
 ## 
-##       UserID      MovieID       Rating    TimeStamp         Date 
-##            0            0            0            0            0 
-##         Time          Age     AgeRange       Gender OccupationID 
-##            0            0            0            0            0 
-##   Occupation      ZipCode   MovieTitle  ReleaseYear       Action 
-##            0            0            0            0            0 
-##    Adventure    Animation   Children's       Comedy        Crime 
-##            0            0            0            0            0 
-##  Documentary        Drama      Fantasy    Film-Noir       Horror 
-##            0            0            0            0            0 
-##      Musical      Mystery      Romance       Sci-Fi     Thriller 
-##            0            0            0            0            0 
+##       UserID      MovieID       Rating    TimeStamp         Date         Time          Age     AgeRange       Gender OccupationID   Occupation      ZipCode   MovieTitle  ReleaseYear       Action 
+##            0            0            0            0            0            0            0            0            0            0            0            0            0            0            0 
+##    Adventure    Animation   Children's       Comedy        Crime  Documentary        Drama      Fantasy    Film-Noir       Horror      Musical      Mystery      Romance       Sci-Fi     Thriller 
+##            0            0            0            0            0            0            0            0            0            0            0            0            0            0            0 
 ##          War      Western 
 ##            0            0
 ```
@@ -1212,7 +1095,7 @@ genere_relyear_dist <- full_mov_df %>% select(ReleaseYear, Action:Western) %>% g
 
 # plotting the distribution
 genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
-ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, nrow = 7, ncol=3)
+ggplot(genere_relyear_dist, aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, nrow = 7, ncol=3)
 ```
 
 ![](Movies_Recommender_System_files/figure-html/genere_relyear_dist-1.png)\
@@ -1236,20 +1119,19 @@ Lastly, looking to see if there are any generes that may be biased towards highe
 genere_rating_df <- full_mov_df %>% select(UserID, MovieID, Rating, Action:Western) %>% 
   gather(Genere, Yes.No, Action:Western, -c(UserID, MovieID, Rating)) %>% 
   mutate(Rating.Yes.No = Rating * Yes.No) %>% 
-  filter(Rating.Yes.No !=0) %>% select(UserID, MovieID, Genere, Rating.Yes.No, Yes.No)
+  filter(Rating.Yes.No !=0) 
 ```
 
 ```
-## Warning in Ops.factor(structure(c(5L, 3L, 3L, 4L, 5L, 3L, 5L, 5L, 4L, 4L, :
-## '*' not meaningful for factors
+## Warning in Ops.factor(structure(c(5L, 3L, 3L, 4L, 5L, 3L, 5L, 5L, 4L, 4L, : '*' not meaningful for factors
 ```
 
 ```r
 # creating a function to reorder values in descending order
 reorder_size <- function(x) {factor(x, levels = names(sort(table(x),decreasing = TRUE)))}
 
-# plotting the distribution - need to order in descending order for better visuals
-#ggplot(genere_rating_df, aes(x=reorder_size(Genere))) + geom_bar() + facet_wrap(~ Rating.Yes.No, ncol = 1) + scale_y_continuous(labels = comma)
+# plotting the distribution
+#ggplot(genere_rating_df, aes(x=reorder_size(Genere))) + geom_bar() + facet_grid(Rating.Yes.No ~ .) + scale_y_continuous(labels = comma)
 ```
 
 
@@ -1304,6 +1186,13 @@ head(as(rating_rRM, "data.frame"))
 ## 35669    1 1097      4
 ```
 
+
+```r
+# visualize the ratings_rRM matrix
+image(rating_rRM, main = "Raw Ratings")
+```
+
+![](Movies_Recommender_System_files/figure-html/rating_rRM_image-1.png)\
 There are 6040 users who have rated 3706 movies and contains 1,000,209 ratings (as orginally seen in the full_mov_df). Also note, the RLp automatically creates the user, item and rating columns.
 
 Looking at the rating distribution of the dataset:
@@ -1350,29 +1239,186 @@ hist(colMeans(rating_rRM), breaks = 50, xlab = "Average Rating per Movie", main 
 ```
 
 ![](Movies_Recommender_System_files/figure-html/mean_rating_per_mov-1.png)\
-This again shows that most of the movies lie between the rating of 3 and 4, with a few exceptions at 1 and 2.
-
-A hypothesis could be that since a large portion of movies fall between the ratings of 3 and 4, it might make sense to just select movies of those generes which fall into this rating range and for people in the age group between 25-34 to build a realiable model.
+Here it again shows that most of the movies lie between the rating of 3 and 4, with a few exceptions at 1 and 2.
 
 ***
+### EDA CONCLUSION
 
-### Building the CF Model
+Based on the EDA of the full_mov_df dataset, the following preliminary conclusions can be made:
 
-
-
-r_rec <- Recommender(r[1:6000], method = "POPULAR")
-r_rec
-recom_p <- predict(r_rec, r[6001:6005], n=5)
-as(recom_p,"list")
-
-recom_r <- predict(r_rec, r[6001:6005], type="ratings")
-as(recom_r, "matrix")
-
-recom_rf <- predict(r_rec, r[6001:6005], type="ratingMatrix")
-as(recom_rf, "matrix")
-
-
-  2. Split the dataframe into Training, CV and Test datasets
-    * Ensure that the data is randomly selected and is normally distributed in each of the datasets
-  3. Run a cosine similarity algorithm to find similar users and recommend movies that they have not yet seen
+  1. Out of the 18 Generes available, only about 5-7 of them are of significance and make up 76% of the entire dataset and have gained in popularity over years (i.e. more of these generes were released after 1970). Releases from 1919 to 1969 are not at all significant
+  2. Users in the age range from 18 to 44 are the ones who watch the most movies and gender distribution is not significant
+  3. Out of the 21 occupations, only about 4 occupations stand out with another 4 at the next level down
+  4. Finally, a large portion of movies fall between the ratings of 3, 4 and 5, and these also happen to be for the significant generes identified earlier
   
+Hence, if a realiable prediction model were to be built with some level of accuracy, it would make sense to conduct some feature engineering where insignificant variables are dropped; i.e. such as 11 generes, movies released between 1919 to 1969, age groups below 18 and above 44, genders, 13 occupations and ratings of 1 and 2.
+
+For the purpose of this project, the above suggestion will not be employed.
+
+***
+### BUILDING THE RECOMMENDER SYSTEM
+
+The recommender system will be built and then validated using the RLp. The steps are outlined below:
+
+  1. The rating_rRM realRatingMatrix created above contains the complete data set. The view of this matrix:
+
+```r
+# visualize the ratings_rRM matrix for the 1st 5 users (out of 6040) and 10 items (out of 3706)
+as(rating_rRM, "matrix")[1:5,1:10]
+```
+
+```
+##       1 10 100 1000 1002 1003 1004 1005 1006 1007
+## 1     5 NA  NA   NA   NA   NA   NA   NA   NA   NA
+## 10    5 NA  NA   NA   NA   NA   NA   NA   NA   NA
+## 100  NA NA  NA   NA   NA   NA   NA   NA   NA   NA
+## 1000  5 NA  NA   NA   NA   NA   NA   NA   NA   NA
+## 1001  4 NA  NA   NA   NA   NA   NA   NA   NA   NA
+```
+The structure of the matrix is: UserIDs in rows, MovieIDs in the cols and Ratings filling up this matrix. As seen, most of it is filled with NAs. Again, the Rmd output is not showing correctly. The console output would give the correct result.
+
+  2. The User Based Collaborative Filtering model will be created and trained with the first 1000 users. This model noramalizes the data dand computes the cosine similarity between the 1000 users.
+
+```r
+# building the recommender for popular items
+popular_mod <- Recommender(rating_rRM[1:1000], method = "POPULAR")
+popular_mod
+```
+
+```
+## Recommender of type 'POPULAR' for 'realRatingMatrix' 
+## learned using 1000 users.
+```
+
+  3. Now using the model to recommend the top 5 most popular items to the next 10 users (i.e. users 1001 to 1010):
+
+```r
+# predicting the top 5 items for the 10 users
+popular_rec <- predict(popular_mod, rating_rRM[1001:1010], n=5)
+#as(popular_rec,"matrix")[,1:10]
+
+#putting the data in a presentable format
+popular_mov_rec_df <- data.frame(matrix(nrow = 10, ncol = 5))
+rownames(popular_mov_rec_df) <- names(popular_rec@items)[1:10]
+for(i in 1:10) {
+  for (j in 1:5) {
+    popular_mov_rec_df[i, j] <- paste0("m", popular_rec@items[[i]][j])
+  }
+}
+names(popular_mov_rec_df) <- as.character(1:5)
+popular_mov_rec_df
+```
+
+```
+##          1     2     3     4     5
+## 19   m3323 m2026 m3205  m617 m2066
+## 190  m3234  m194  m192 m2265 m3205
+## 1900 m1917 m1641 m3234  m194  m192
+## 1901 m1917 m3234 m2265 m2026 m3205
+## 1902 m1641 m3234  m194  m192 m3559
+## 1903 m3234 m3031 m2194 m3250  m190
+## 1904 m3234 m2265 m3323  m617 m2066
+## 1905 m1917 m1641  m194  m192 m1026
+## 1906 m1641 m3234  m194 m1026 m3559
+## 1907 m1917 m1641 m3234  m194  m192
+```
+The top 5 recommendations for each of the 10 users is given above. There is a problem with this Rmd output (please check the result in the console window by running the code chunk). If the movie names are required, the above dataframe can be semi-joined with the mov_df dataframe.
+
+  4. In order to validate the popular_rec model created above, it needs to be evaluated against the original data (rating_rRM matix). In order to create an evaluation scheme in RLp, the same 1000 users matrix will be split into a 90% chunk (900 users) for training the model and 10% for testing (100 users). For the test set, 20 items per user will be given to the recommender alogrithm (since this is the minimum number of movies each user has rated) while the other will be used to compute the errors. In this model, a rating of 3 or above is considered good. k = 1 in the method signifies a single split of the matrix with no cross validation schemes.
+
+
+```r
+# creating a 90/10 split (known/unknown) evaluation scheme for the 1000 users
+(rating1k_es <- evaluationScheme(rating_rRM[1:1000,], method = "split", train = 0.9, k=1, given = 20, goodRating = 3))
+```
+
+```
+## Evaluation scheme with 20 items given
+## Method: 'split' with 1 run(s).
+## Training set proportion: 0.900
+## Good ratings: >=3.000000
+## Data set: 1000 x 3706 rating matrix of class 'realRatingMatrix' with 180710 ratings.
+```
+
+```r
+# known data breakup
+rating1k_es@knownData
+```
+
+```
+## 1000 x 3706 rating matrix of class 'realRatingMatrix' with 20000 ratings.
+```
+
+```r
+# unknown data breakup
+rating1k_es@unknownData
+```
+
+```
+## 1000 x 3706 rating matrix of class 'realRatingMatrix' with 160710 ratings.
+```
+
+  5. a. Creating the recommender model based on the "UBCF" method. Here the data is already normalized (as seen).
+
+```r
+# creating the User Based recommender using the training data and the cosine similarity method
+rating1k_mod_ubcf<- Recommender(getData(rating1k_es, "train"), "UBCF")
+getModel(rating1k_mod_ubcf)$data
+```
+
+```
+## 900 x 3706 rating matrix of class 'realRatingMatrix' with 160346 ratings.
+## Normalized using center on rows.
+```
+
+  5. b. Creating the recommender model based on the "Item Based CF (IBCF)" method for comparison purposes.
+
+```r
+# creating the Item Based recommender using the training data and the cosine similarity method
+rating1k_mod_ibcf<- Recommender(getData(rating1k_es, "train"), "IBCF")
+```
+
+  6. a. Making predictions on the test set using the UBCF model for the known part of the test data (20 items per user)
+
+```r
+(rating1k_rec_ubcf <- predict(rating1k_mod_ubcf, getData(rating1k_es, "known"), type = "ratings"))
+```
+
+```
+## 100 x 3706 rating matrix of class 'realRatingMatrix' with 368600 ratings.
+```
+
+  6. b. Making predictions on the test set using the IBCF model for the known part of the test data (20 items per user)
+
+```r
+(rating1k_rec_ibcf <- predict(rating1k_mod_ibcf, getData(rating1k_es, "known"), type = "ratings"))
+```
+
+```
+## 100 x 3706 rating matrix of class 'realRatingMatrix' with 36273 ratings.
+```
+
+  7. Finally, calculating the prediction accuracy between the predicted and the unknown part of the test data:
+
+```r
+rating1k_rec_ubcf_errs <- calcPredictionAccuracy(rating1k_rec_ubcf, getData(rating1k_es, "unknown"))
+rating1k_rec_ibcf_errs <- calcPredictionAccuracy(rating1k_rec_ibcf, getData(rating1k_es, "unknown"))
+
+# presenting the errors between the 2 methods
+rating1k_rec_errs <- rbind(rating1k_rec_ubcf_errs, rating1k_rec_ibcf_errs)
+rownames(rating1k_rec_errs) <- c("UBCF", "IBCF")
+rating1k_rec_errs
+```
+
+```
+##          RMSE      MSE       MAE
+## UBCF 1.013581 1.027346 0.8032448
+## IBCF 1.115924 1.245287 0.7995886
+```
+
+Overall, there is not much of a difference between the 2 methods, but the UBCF is slightly better than the IBCF.
+
+***
+### OVERALL CONCLUSION
+
+If feature engineering were to be performed based on the preliminary conclusions stated in the EDA section, where users, movies and ratings would be selected for datasets which are more meaningful, the belief would be that the predictions can be made more accurate and relevant.

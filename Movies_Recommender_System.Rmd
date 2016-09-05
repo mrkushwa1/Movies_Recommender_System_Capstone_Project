@@ -6,16 +6,22 @@ output:
   html_document:
     keep_md: true
 ---
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 200)
+```
+
 ***
 ### OBJECTIVE/SYNOPSIS
 
-The objective of this project is create a movies recommender system which utilizes the collaborative filtering methodology to recommend atlest top 5 movies to about 20 target users. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
+The objective of this project is create a movies recommender system using the recommenderlab package (from CRAN), which utilizes the collaborative filtering methodology to recommend atlest top 5 movies to some target users. The data was downloaded from the MoviesLens site: <http://grouplens.org/datasets/movielens>. The datasets are provided by the GroupLens Research Group. (Please refer to the "READ.ME" file included for endorsements)
 
 The dataset that was chosen is from the "MovieLens 1M Dataset" section and the compressed file name was: "ml-1m.zip".
 
-The structure of the Movie data is such that it does not provide any Movie content information except for Generes, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology in its ture form cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
+The structure of the Movie data is such that it does not provide any Movie content information except for Generes, i.e. there is no information about the directors, actors, producers, etc. Hence, content based collaborative filtering methodology in its true form cannot be used here. Ideally, to make a sensible collaborative filtering model, both user and content based filtering methods need to be employed in tandem.
 
-Based on this limitation, the approach is then to utlize the user based collaborative filtering method, which finds similarity between ratings of multiple users who are the closest to the target user, and then provide movies' recommendations to this user which they have not yet rated or seen.
+Based on this limitation, the approach is then to utlize the user based collaborative filtering method, which serves 2 main purposes:
+  1. finds similarity between ratings of multiple users who are the closest to the target user and predicts ratings for the movies/items that the target user has not rated yet 
+  2. provides a list of top-N movies/items recommendations to this user (which they have not yet rated or seen)
 
 ***
 ### ABOUT THE FILES IN THE "MOVIELENS 1M DATASET""
@@ -537,7 +543,7 @@ genere_dist <- full_mov_df %>%
 ```
 
 Plotting the genere distribution of the dataset
-```{r echo = FALSE, genere_dist_plot}
+```{r echo = FALSE, genere_dist_plot, fig.width=10}
 ggplot(aes(x=reorder(Genere, -Freq), y=Freq), data = genere_dist) + 
   geom_bar(stat = "identity") +
   xlab("Generes") +
@@ -545,19 +551,20 @@ ggplot(aes(x=reorder(Genere, -Freq), y=Freq), data = genere_dist) +
   scale_y_continuous(labels = comma)
 ```
 
-```{r echo = FALSE, genere_dist_plot2}
+```{r echo = FALSE, genere_dist_plot2, fig.width=10}
 # to show %
 ggplot(aes(x=reorder(Genere, -Freq), y=(Freq/sum(Freq))), data = genere_dist) + 
   geom_bar(stat = "identity") +
   scale_y_continuous(labels = percent) +
   xlab("Generes") +
-  ylab("Percent")
+  ylab("Percent") +
+  geom_text(aes(label = format(round(Freq/sum(Freq)*100, 1), nsmall = 1)), color = "White", vjust = 2)
 ```
 
 The dataset shows a Right skewed distribution, where the Comedy and Drama generes make up a noticable part of the full_mov_df (approx. 35%), followed by Action and Thriller. The other generes appear grouped with similar number of occurances in the dataset (i.e. Scifi, Romance and Adventure seem to have between 5%-7% share each, Crime, Horror, Children's and War seem to be between 2.5%-3.5%, and so forth) 
 
   2. Gender vs Age distributions - It would be interesting to see how the users are distirbuted across the genders 
-```{r gender_age_dist}
+```{r gender_age_dist, fig.width=10}
 ggplot(full_mov_df, aes(AgeRange, fill = Gender)) + geom_bar() + scale_y_continuous(labels = comma)
 ```
 
@@ -566,7 +573,7 @@ It appears that there is a significantly larger portion of male users in the ful
 
   3. Occupation Gender and Age distributions together - The idea here is to see if there is any relationship between age, gender and occupations. Perhaps, a particular occupation would house a greater agerange than others, and that in turn might prefer to watch a particular kind of genere.
   
-```{r occup_gender_age_dist}
+```{r occup_gender_age_dist, fig.width=10, fig.height=10}
 ggplot(full_mov_df, aes(AgeRange, fill = Gender)) + facet_wrap(~Occupation, nrow = 7, ncol = 3) + geom_bar() + scale_y_continuous(labels = comma)
 ```
 
@@ -583,7 +590,7 @@ age_gndr_occp_genre_dist <- full_mov_df %>%
   gather(Genere, Freq, Action:Western, -c(AgeRange, Gender, Occupation))
 ```
 
-```{r age_gender_genere_dist_plot}
+```{r age_gender_genere_dist_plot, fig.width=10}
 ggplot(age_gndr_occp_genre_dist, aes(x=reorder(Genere, -Freq), y=Freq, fill= AgeRange)) + geom_bar(stat = "identity") + scale_y_continuous(labels = comma)
 ```
 
@@ -592,18 +599,18 @@ The output does not say much except that 25-34 agerange makes up the largest chu
 
     * Generes over Release years - to find out if there is there a change/popularity of Generes over time
     
-```{r genere_relyear_dist}
+```{r genere_relyear_dist, fig.width=10, fig.height=10}
 genere_relyear_dist <- full_mov_df %>% select(ReleaseYear, Action:Western) %>% group_by(ReleaseYear) %>% summarise_each(funs(sum), Action:Western)  %>% gather(Genere, Freq, Action:Western, -ReleaseYear)
 
 # plotting the distribution
 genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
-ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, nrow = 7, ncol=3)
+ggplot(genere_relyear_dist, aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, nrow = 7, ncol=3)
 ```
 
 It looks like there is not much sensible data present before 1970, to be able to really observe a trend if there way any. 
 
 Refining the plot and taking years from 1970 onwards:
-```{r genere_relyear_dist_mod}
+```{r genere_relyear_dist_mod, fig.width=10, fig.height=10}
 genere_relyear_dist$ReleaseYear <- as.character(genere_relyear_dist$ReleaseYear)
 ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)) + geom_bar(stat = "identity") + facet_wrap(~Genere, ncol=2)
 ```
@@ -611,17 +618,17 @@ ggplot(subset(genere_relyear_dist, ReleaseYear > "1969"), aes(ReleaseYear, Freq)
 Here is seems that Drama, Comedy, Action, Thriller and Romance are the generes that gained in popularity over time. The rest of the generes did not exhibit this level of increase.
 
 Lastly, looking to see if there are any generes that may be biased towards higher ratings:
-```{r genere_rating_df}
+```{r genere_rating_df, fig.width=10}
 genere_rating_df <- full_mov_df %>% select(UserID, MovieID, Rating, Action:Western) %>% 
   gather(Genere, Yes.No, Action:Western, -c(UserID, MovieID, Rating)) %>% 
   mutate(Rating.Yes.No = Rating * Yes.No) %>% 
-  filter(Rating.Yes.No !=0) %>% select(UserID, MovieID, Genere, Rating.Yes.No, Yes.No)
+  filter(Rating.Yes.No !=0) 
 
 # creating a function to reorder values in descending order
 reorder_size <- function(x) {factor(x, levels = names(sort(table(x),decreasing = TRUE)))}
 
-# plotting the distribution - need to order in descending order for better visuals
-#ggplot(genere_rating_df, aes(x=reorder_size(Genere))) + geom_bar() + facet_wrap(~ Rating.Yes.No, ncol = 1) + scale_y_continuous(labels = comma)
+# plotting the distribution
+#ggplot(genere_rating_df, aes(x=reorder_size(Genere))) + geom_bar() + facet_grid(Rating.Yes.No ~ .) + scale_y_continuous(labels = comma)
 ```
 
 
@@ -651,60 +658,143 @@ rating_rRM
 head(as(rating_rRM, "data.frame"))
 ```
 
+```{r rating_rRM_image}
+# visualize the ratings_rRM matrix
+image(rating_rRM, main = "Raw Ratings")
+```
 There are 6040 users who have rated 3706 movies and contains 1,000,209 ratings (as orginally seen in the full_mov_df). Also note, the RLp automatically creates the user, item and rating columns.
 
 Looking at the rating distribution of the dataset:
-```{r rating_dist}
+```{r rating_dist, fig.width=10}
 hist(getRatings(rating_rRM), breaks = 5, xlab = "Rating", main = "Histogram of Ratings and their Occurances")
 ```
 
 The histogram shows that users might be more biased towards giving ratings between 3 and 4 and not so inclined towards a rating of 1. 5 is also not given as frequently but is more often than 1.
 
 Normalizing the distribution to become more 0 centred:
-```{r normalization}
+```{r normalization, fig.width=10}
 hist(getRatings(normalize(rating_rRM)), breaks = 100, xlab = "Normalized Rating", main = "Histogram of Normalized Ratings")
 ```
 
 Here, the distribution is closer to that of a normal one (although it seems more right skewed towards the positive side), with interestingly high peaks occuring between 0 and 1.
 
 Looking at the distribution of how many movies each user has rated:
-```{r ratings_of_usrs}
+```{r ratings_of_usrs, fig.width=10}
 hist(rowCounts(rating_rRM), breaks = 100, xlim = c(0,1000), xlab = "Number of Movies Rated per User", ylab = "Number of Users", main = "Distribution of Number of Movies Rated by each User")
 ```
 The plot shows that majority of the users lie in the region where they have rated atleast 20 movies (known fact from the MovieLens dataset), and as the number of movies increase, the users count falls. This makes sense otherwise we would all be glued to the screens watching and rating movies all day long. 
 
-```{r ratings_of_usrs_mod}
+```{r ratings_of_usrs_mod, fig.width=10}
 hist(rowMeans(rating_rRM), breaks = 100, xlab = "Average Rating per User", main = "Distribution of Average Movie Rating by each User")
 ```
 This again shows that majority of the users have a tendency to rate between 3 and 4, with steep decline when rating 5. The range from 1 to 3 is the lowest, perhaps meaning that users only prefer to watch movies that are rated 3 and above.
 
 Finally, looking at the mean rating per movie:
-```{r mean_rating_per_mov}
+```{r mean_rating_per_mov, fig.width=10}
 hist(colMeans(rating_rRM), breaks = 50, xlab = "Average Rating per Movie", main = "Distribution of Average Rating per Movie")
 ```
-This again shows that most of the movies lie between the rating of 3 and 4, with a few exceptions at 1 and 2.
-
-A hypothesis could be that since a large portion of movies fall between the ratings of 3 and 4, it might make sense to just select movies of those generes which fall into this rating range and for people in the age group between 25-34 to build a realiable model.
+Here it again shows that most of the movies lie between the rating of 3 and 4, with a few exceptions at 1 and 2.
 
 ***
+### EDA CONCLUSION
 
-### Building the CF Model
+Based on the EDA of the full_mov_df dataset, the following preliminary conclusions can be made:
 
-
-
-r_rec <- Recommender(r[1:6000], method = "POPULAR")
-r_rec
-recom_p <- predict(r_rec, r[6001:6005], n=5)
-as(recom_p,"list")
-
-recom_r <- predict(r_rec, r[6001:6005], type="ratings")
-as(recom_r, "matrix")
-
-recom_rf <- predict(r_rec, r[6001:6005], type="ratingMatrix")
-as(recom_rf, "matrix")
-
-
-  2. Split the dataframe into Training, CV and Test datasets
-    * Ensure that the data is randomly selected and is normally distributed in each of the datasets
-  3. Run a cosine similarity algorithm to find similar users and recommend movies that they have not yet seen
+  1. Out of the 18 Generes available, only about 5-7 of them are of significance and make up 76% of the entire dataset and have gained in popularity over years (i.e. more of these generes were released after 1970). Releases from 1919 to 1969 are not at all significant
+  2. Users in the age range from 18 to 44 are the ones who watch the most movies and gender distribution is not significant
+  3. Out of the 21 occupations, only about 4 occupations stand out with another 4 at the next level down
+  4. Finally, a large portion of movies fall between the ratings of 3, 4 and 5, and these also happen to be for the significant generes identified earlier
   
+Hence, if a realiable prediction model were to be built with some level of accuracy, it would make sense to conduct some feature engineering where insignificant variables are dropped; i.e. such as 11 generes, movies released between 1919 to 1969, age groups below 18 and above 44, genders, 13 occupations and ratings of 1 and 2.
+
+For the purpose of this project, the above suggestion will not be employed.
+
+***
+### BUILDING THE RECOMMENDER SYSTEM
+
+The recommender system will be built and then validated using the RLp. The steps are outlined below:
+
+  1. The rating_rRM realRatingMatrix created above contains the complete data set. The view of this matrix:
+```{r rating_rRM_mat_view}
+# visualize the ratings_rRM matrix for the 1st 5 users (out of 6040) and 10 items (out of 3706)
+as(rating_rRM, "matrix")[1:5,1:10]
+```
+The structure of the matrix is: UserIDs in rows, MovieIDs in the cols and Ratings filling up this matrix. As seen, most of it is filled with NAs. Again, the Rmd output is not showing correctly. The console output would give the correct result.
+
+  2. The User Based Collaborative Filtering model will be created and trained with the first 1000 users. This model noramalizes the data dand computes the cosine similarity between the 1000 users.
+```{r popularity_model}
+# building the recommender for popular items
+popular_mod <- Recommender(rating_rRM[1:1000], method = "POPULAR")
+popular_mod
+```
+
+  3. Now using the model to recommend the top 5 most popular items to the next 10 users (i.e. users 1001 to 1010):
+```{r recomendations}
+# predicting the top 5 items for the 10 users
+popular_rec <- predict(popular_mod, rating_rRM[1001:1010], n=5)
+#as(popular_rec,"matrix")[,1:10]
+
+#putting the data in a presentable format
+popular_mov_rec_df <- data.frame(matrix(nrow = 10, ncol = 5))
+rownames(popular_mov_rec_df) <- names(popular_rec@items)[1:10]
+for(i in 1:10) {
+  for (j in 1:5) {
+    popular_mov_rec_df[i, j] <- paste0("m", popular_rec@items[[i]][j])
+  }
+}
+names(popular_mov_rec_df) <- as.character(1:5)
+popular_mov_rec_df
+```
+The top 5 recommendations for each of the 10 users is given above. There is a problem with this Rmd output (please check the result in the console window by running the code chunk). If the movie names are required, the above dataframe can be semi-joined with the mov_df dataframe.
+
+  4. In order to validate the popular_rec model created above, it needs to be evaluated against the original data (rating_rRM matix). In order to create an evaluation scheme in RLp, the same 1000 users matrix will be split into a 90% chunk (900 users) for training the model and 10% for testing (100 users). For the test set, 20 items per user will be given to the recommender alogrithm (since this is the minimum number of movies each user has rated) while the other will be used to compute the errors. In this model, a rating of 3 or above is considered good. k = 1 in the method signifies a single split of the matrix with no cross validation schemes.
+
+```{r rating1k_eval_scheme}
+# creating a 90/10 split (known/unknown) evaluation scheme for the 1000 users
+(rating1k_es <- evaluationScheme(rating_rRM[1:1000,], method = "split", train = 0.9, k=1, given = 20, goodRating = 3))
+# known data breakup
+rating1k_es@knownData
+# unknown data breakup
+rating1k_es@unknownData
+```
+
+  5. a. Creating the recommender model based on the "UBCF" method. Here the data is already normalized (as seen).
+```{r rating1k_mod_ubcf}
+# creating the User Based recommender using the training data and the cosine similarity method
+rating1k_mod_ubcf<- Recommender(getData(rating1k_es, "train"), "UBCF")
+getModel(rating1k_mod_ubcf)$data
+```
+
+  5. b. Creating the recommender model based on the "Item Based CF (IBCF)" method for comparison purposes.
+```{r rating1k_mod_ibcf}
+# creating the Item Based recommender using the training data and the cosine similarity method
+rating1k_mod_ibcf<- Recommender(getData(rating1k_es, "train"), "IBCF")
+```
+
+  6. a. Making predictions on the test set using the UBCF model for the known part of the test data (20 items per user)
+```{r rating1k_rec_ubcf}
+(rating1k_rec_ubcf <- predict(rating1k_mod_ubcf, getData(rating1k_es, "known"), type = "ratings"))
+```
+
+  6. b. Making predictions on the test set using the IBCF model for the known part of the test data (20 items per user)
+```{r rating1k_rec_ibcf}
+(rating1k_rec_ibcf <- predict(rating1k_mod_ibcf, getData(rating1k_es, "known"), type = "ratings"))
+```
+
+  7. Finally, calculating the prediction accuracy between the predicted and the unknown part of the test data:
+```{r rating1k_rec_errs}
+rating1k_rec_ubcf_errs <- calcPredictionAccuracy(rating1k_rec_ubcf, getData(rating1k_es, "unknown"))
+rating1k_rec_ibcf_errs <- calcPredictionAccuracy(rating1k_rec_ibcf, getData(rating1k_es, "unknown"))
+
+# presenting the errors between the 2 methods
+rating1k_rec_errs <- rbind(rating1k_rec_ubcf_errs, rating1k_rec_ibcf_errs)
+rownames(rating1k_rec_errs) <- c("UBCF", "IBCF")
+rating1k_rec_errs
+```
+
+Overall, there is not much of a difference between the 2 methods, but the UBCF is slightly better than the IBCF.
+
+***
+### OVERALL CONCLUSION
+
+If feature engineering were to be performed based on the preliminary conclusions stated in the EDA section, where users, movies and ratings would be selected for datasets which are more meaningful, the belief would be that the predictions can be made more accurate and relevant.
