@@ -631,16 +631,12 @@ reorder_size <- function(x) {factor(x, levels = names(sort(table(x),decreasing =
 #ggplot(genere_rating_df, aes(x=reorder_size(Genere))) + geom_bar() + facet_grid(Rating.Yes.No ~ .) + scale_y_continuous(labels = comma)
 ```
 
-
-#### Note to Amit: We can talk about these charts on Wednesday and whether it makes sense to do any feature engineering.. I am not sure when it comes to collaborative filtering..
-
 ***
 The recommenderlab package from CRAN (hitherto referred to as "RLp"), will be used going forward, to:
   1. look at the rating behaviours of users through preliminary EDA
-  2. pick 2000 users and build a popularity based model to recommend top 5 most popular movies for 20 active users
-  3. come up with the top 5 movies for about 20 users. There are some assumptions that have been taken into account
+  2. pick 1000 users and build a user based collaborative filtering mdoel to come up with the top 5 movies for 10 target users
 
-Addressing point 1 above:
+Hence, progressing with the preliminary EDA using RLp:
 
 ```{r usr_mov_rtg_df}
 # Creating the rating df consisting of UserID, MovieID and Rating columns
@@ -656,17 +652,43 @@ rating_rRM
 
 # Looking at the format of rating_rRM
 head(as(rating_rRM, "data.frame"))
+
+# creating a vector of ratings from the matrix
+ratings_vec <- as.vector(rating_rRM@data)
+unique(ratings_vec)
+
+# Counting the occurances of each integer rating
+(table_ratings <- as.data.frame(table(ratings_vec)))
 ```
+Since 0 ratings represents a missing value, these can be eliminated. Hence:
+
+```{r ratings_vec_mod}
+ratings_vec <- ratings_vec[ratings_vec !=0]
+```
+
 
 ```{r rating_rRM_image}
 # visualize the ratings_rRM matrix
 image(rating_rRM, main = "Raw Ratings")
 ```
-There are 6040 users who have rated 3706 movies and contains 1,000,209 ratings (as orginally seen in the full_mov_df). Also note, the RLp automatically creates the user, item and rating columns.
+There are 6040 users who have rated 3706 movies and contains 1,000,209 ratings (as orginally seen in the full_mov_df). Also note, the RLp automatically creates the user, item and rating columns. This image does not show much except that there is a lot of dark (black) areas indicating highest-rated movies as represented by the columns and
+conversely, darker rows representing users giving higher ratings. 
 
-Looking at the rating distribution of the dataset:
+Hence, to make sense of this, relevant movies and users will need to be picked from the matrix (not covered in this project yet).
+
+```{r top_users_items, echo = FALSE}
+#Looking at the minimum number of movies per user and user per movie 
+#(mov_min <- quantile(rowCounts(rating_rRM), 0.99))
+#(usrs_min <- quantile(colCounts(rating_rRM), 0.99))
+#image(rating_rRM[rowCounts(rating_rRM) > mov_min, colCounts(rating_rRM) > usrs_min], main = "Heatmap of the top users and movies")
+```
+
+
+Looking at the rating frequency distribution of the dataset:
 ```{r rating_dist, fig.width=10}
-hist(getRatings(rating_rRM), breaks = 5, xlab = "Rating", main = "Histogram of Ratings and their Occurances")
+# converting the ratings_vec to factors
+ratings_vec <- factor(ratings_vec)
+ggplot()+ aes(ratings_vec) + geom_bar() + scale_y_continuous(labels = comma) + ggtitle("Distribution of Ratings")
 ```
 
 The histogram shows that users might be more biased towards giving ratings between 3 and 4 and not so inclined towards a rating of 1. 5 is also not given as frequently but is more often than 1.
@@ -722,32 +744,36 @@ as(rating_rRM, "matrix")[1:5,1:10]
 The structure of the matrix is: UserIDs in rows, MovieIDs in the cols and Ratings filling up this matrix. As seen, most of it is filled with NAs. Again, the Rmd output is not showing correctly. The console output would give the correct result.
 
   2. The User Based Collaborative Filtering model will be created and trained with the first 1000 users. This model noramalizes the data dand computes the cosine similarity between the 1000 users.
-```{r popularity_model}
+```{r popularity_model, echo = FALSE}
 # building the recommender for popular items
-popular_mod <- Recommender(rating_rRM[1:1000], method = "POPULAR")
-popular_mod
+#3popular_mod <- Recommender(rating_rRM[1:1000], method = "POPULAR")
+#popular_mod
 ```
 
-  3. Now using the model to recommend the top 5 most popular items to the next 10 users (i.e. users 1001 to 1010):
-```{r recomendations}
+```{r ubcf_model}
+# building the ubcf recommender model
+rating1k_mod_ubcf <- Recommender(rating_rRM[1:1000], method = "UBCF")
+```
+
+  3. Now using the model to recommend the top 5 movies to the next 10 users (i.e. users 1001 to 1010):
+```{r ubcf_recomendations}
 # predicting the top 5 items for the 10 users
-popular_rec <- predict(popular_mod, rating_rRM[1001:1010], n=5)
-#as(popular_rec,"matrix")[,1:10]
+rating1k_rec_ubcf <- predict(rating1k_mod_ubcf, rating_rRM[1001:1010], n=5)
 
 #putting the data in a presentable format
-popular_mov_rec_df <- data.frame(matrix(nrow = 10, ncol = 5))
-rownames(popular_mov_rec_df) <- names(popular_rec@items)[1:10]
+rating1k_mov_rec_df <- data.frame(matrix(nrow = 10, ncol = 5))
+rownames(rating1k_mov_rec_df) <- names(rating1k_rec_ubcf@items)[1:10]
 for(i in 1:10) {
   for (j in 1:5) {
-    popular_mov_rec_df[i, j] <- paste0("m", popular_rec@items[[i]][j])
+    rating1k_mov_rec_df[i, j] <- paste0("m", rating1k_rec_ubcf@items[[i]][j])
   }
 }
-names(popular_mov_rec_df) <- as.character(1:5)
-popular_mov_rec_df
+names(rating1k_mov_rec_df) <- as.character(1:5)
+rating1k_mov_rec_df
 ```
 The top 5 recommendations for each of the 10 users is given above. There is a problem with this Rmd output (please check the result in the console window by running the code chunk). If the movie names are required, the above dataframe can be semi-joined with the mov_df dataframe.
 
-  4. In order to validate the popular_rec model created above, it needs to be evaluated against the original data (rating_rRM matix). In order to create an evaluation scheme in RLp, the same 1000 users matrix will be split into a 90% chunk (900 users) for training the model and 10% for testing (100 users). For the test set, 20 items per user will be given to the recommender alogrithm (since this is the minimum number of movies each user has rated) while the other will be used to compute the errors. In this model, a rating of 3 or above is considered good. k = 1 in the method signifies a single split of the matrix with no cross validation schemes.
+  4. In order to validate the rating1k_mod_ubcf model created above, it needs to be evaluated against the original data (rating_rRM matix). An evaluation scheme in RLp is created where the same 1000 users matrix will be split into a 90% chunk (900 users) for training the model and 10% for testing (100 users). For the test set, 20 items per user will be given to the recommender alogrithm (since this is the minimum number of movies each user has rated) while the other will be used to compute the errors. In this model, a rating of 3 or above is considered good. k = 1 in the method signifies a single split of the matrix with no cross validation schemes.
 
 ```{r rating1k_eval_scheme}
 # creating a 90/10 split (known/unknown) evaluation scheme for the 1000 users
@@ -758,41 +784,37 @@ rating1k_es@knownData
 rating1k_es@unknownData
 ```
 
-  5. a. Creating the recommender model based on the "UBCF" method. Here the data is already normalized (as seen).
+  5. Creating the recommender model based on the "UBCF" method. Here the data is already normalized (as seen).
 ```{r rating1k_mod_ubcf}
 # creating the User Based recommender using the training data and the cosine similarity method
-rating1k_mod_ubcf<- Recommender(getData(rating1k_es, "train"), "UBCF")
-getModel(rating1k_mod_ubcf)$data
+rating1k_mod_train_ubcf<- Recommender(getData(rating1k_es, "train"), "UBCF")
+getModel(rating1k_mod_train_ubcf)$data
 ```
 
-  5. b. Creating the recommender model based on the "Item Based CF (IBCF)" method for comparison purposes.
-```{r rating1k_mod_ibcf}
+
+```{r rating1k_mod_ibcf, echo = FALSE}
+#5. b. Creating the recommender model based on the "Item Based CF (IBCF)" method for comparison purposes.
 # creating the Item Based recommender using the training data and the cosine similarity method
-rating1k_mod_ibcf<- Recommender(getData(rating1k_es, "train"), "IBCF")
+#rating1k_mod_ibcf<- Recommender(getData(rating1k_es, "train"), "IBCF")
 ```
 
-  6. a. Making predictions on the test set using the UBCF model for the known part of the test data (20 items per user)
+  6. Making predictions on the test set using the UBCF model for the known part of the test data (20 items per user)
 ```{r rating1k_rec_ubcf}
-(rating1k_rec_ubcf <- predict(rating1k_mod_ubcf, getData(rating1k_es, "known"), type = "ratings"))
+(rating1k_rec_ubcf_knwn <- predict(rating1k_mod_ubcf, getData(rating1k_es, "known"), type = "ratings"))
 ```
 
-  6. b. Making predictions on the test set using the IBCF model for the known part of the test data (20 items per user)
-```{r rating1k_rec_ibcf}
-(rating1k_rec_ibcf <- predict(rating1k_mod_ibcf, getData(rating1k_es, "known"), type = "ratings"))
+```{r rating1k_rec_ibcf, echo = FALSE}
+#6. b. Making predictions on the test set using the IBCF model for the known part of the test data (20 items per user)
+#(rating1k_rec_ibcf <- predict(rating1k_mod_ibcf, getData(rating1k_es, "known"), type = "ratings"))
 ```
 
   7. Finally, calculating the prediction accuracy between the predicted and the unknown part of the test data:
 ```{r rating1k_rec_errs}
-rating1k_rec_ubcf_errs <- calcPredictionAccuracy(rating1k_rec_ubcf, getData(rating1k_es, "unknown"))
-rating1k_rec_ibcf_errs <- calcPredictionAccuracy(rating1k_rec_ibcf, getData(rating1k_es, "unknown"))
-
-# presenting the errors between the 2 methods
-rating1k_rec_errs <- rbind(rating1k_rec_ubcf_errs, rating1k_rec_ibcf_errs)
-rownames(rating1k_rec_errs) <- c("UBCF", "IBCF")
-rating1k_rec_errs
+rating1k_rec_ubcf_errs <- calcPredictionAccuracy(rating1k_rec_ubcf_knwn, getData(rating1k_es, "unknown"))
+rating1k_rec_ubcf_errs
 ```
 
-Overall, there is not much of a difference between the 2 methods, but the UBCF is slightly better than the IBCF.
+Overall, the prediction errors produced by the UBCF recommendation model are not that high.
 
 ***
 ### OVERALL CONCLUSION
